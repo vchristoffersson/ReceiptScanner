@@ -37,6 +37,7 @@ import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -55,7 +56,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public class FragmentCam extends Fragment
-        implements View.OnClickListener, FragmentCompat.OnRequestPermissionsResultCallback {
+        implements View.OnClickListener, View.OnTouchListener, FragmentCompat.OnRequestPermissionsResultCallback {
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 1;
@@ -104,6 +105,7 @@ public class FragmentCam extends Fragment
     private CameraCaptureSession mCaptureSession;
     private CameraDevice mCameraDevice;
     private Size mPreviewSize;
+    private boolean isHold = false;
 
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
@@ -215,6 +217,7 @@ public class FragmentCam extends Fragment
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         view.findViewById(R.id.picture).setOnClickListener(this);
+        view.findViewById(R.id.picture).setOnTouchListener(this);
         view.findViewById(R.id.info).setOnClickListener(this);
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
     }
@@ -665,6 +668,16 @@ public class FragmentCam extends Fragment
                     CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
         }
     }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        if(event.getEventTime() >= event.getDownTime() + 1000) {
+            isHold = false;
+        } else {
+            isHold = true;
+        }
+        return true;
+    }   
 
     /**
      * Saves a JPEG {@link Image} into the specified {@link File}.
