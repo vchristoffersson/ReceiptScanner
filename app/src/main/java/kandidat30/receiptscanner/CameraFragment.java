@@ -1,7 +1,6 @@
 package kandidat30.receiptscanner;
 
 import android.Manifest;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
@@ -24,6 +23,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.Range;
@@ -62,7 +63,7 @@ public class CameraFragment extends Fragment implements FragmentCompat.OnRequest
     private static final int REQUEST_MULTIPLE_PERMISSION = 300;
     private static final int AMOUNT_OF_PICTURES = 3;
     private static final long[] EXPOSURE_TIMES = new long[]{};
-    private TextureView cameraView;
+    private AutoFitTextureView cameraView;
     private Button cameraButton;
     private CameraDevice device;
     private CameraManager manager;
@@ -91,6 +92,9 @@ public class CameraFragment extends Fragment implements FragmentCompat.OnRequest
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+
+        this.requestPermissions(new String[]{Manifest.permission.CAMERA}, 1);
+
         View view = inflater.inflate(R.layout.fragment_camera, container, false);
         cameraButton = (Button) view.findViewById(R.id.camera_button);
 
@@ -100,8 +104,9 @@ public class CameraFragment extends Fragment implements FragmentCompat.OnRequest
                 captureFromCamera();
             }
         });
-        cameraView = (TextureView) view.findViewById(R.id.camera_view);
+        cameraView = (AutoFitTextureView) view.findViewById(R.id.camera_view);
         cameraView.setSurfaceTextureListener(surfaceTextureListener);
+
         return view;
     }
 
@@ -174,8 +179,8 @@ public class CameraFragment extends Fragment implements FragmentCompat.OnRequest
             if(ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
                     != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     != PackageManager.PERMISSION_GRANTED) {
-                FragmentCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_MULTIPLE_PERMISSION);
+               // FragmentCompat.requestPermissions(, new String[]{Manifest.permission.CAMERA,
+                 //       Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_MULTIPLE_PERMISSION);
             }
 
             manager.openCamera(id, callback, null);
