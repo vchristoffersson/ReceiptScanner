@@ -26,7 +26,9 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
@@ -47,18 +49,24 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public class FragmentCam extends Fragment
-        implements View.OnClickListener, View.OnTouchListener, FragmentCompat.OnRequestPermissionsResultCallback {
+        implements View.OnClickListener, View.OnTouchListener,
+        FragmentCompat.OnRequestPermissionsResultCallback {
 
+    private static final int SENSOR_ORIENTATION_DEFAULT_DEGREES = 90;
+    private static final int SENSOR_ORIENTATION_INVERSE_DEGREES = 270;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+    private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 1;
 
     static {
@@ -66,6 +74,13 @@ public class FragmentCam extends Fragment
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
         ORIENTATIONS.append(Surface.ROTATION_180, 270);
         ORIENTATIONS.append(Surface.ROTATION_270, 180);
+    }
+
+    static {
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_0, 270);
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_90, 180);
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_180, 90);
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_270, 0);
     }
 
     private static final String TAG = "Camera2BasicFragment";
@@ -106,7 +121,8 @@ public class FragmentCam extends Fragment
     private CameraDevice mCameraDevice;
     private Size mPreviewSize;
     private boolean isHold = false;
-
+    private File directory;
+    private Size mVideoSize;
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
         @Override
@@ -167,9 +183,12 @@ public class FragmentCam extends Fragment
 
     private int mSensorOrientation;
 
+    private MediaRecorder mediaRecorder;
+
     private CameraCaptureSession.CaptureCallback mCaptureCallback
             = new CameraCaptureSession.CaptureCallback() {
     };
+    private Surface mRecorderSurface;
 
     private static Size chooseOptimalSize(Size[] choices, int textureViewWidth,
                                           int textureViewHeight, int maxWidth, int maxHeight, Size aspectRatio) {
@@ -289,6 +308,9 @@ public class FragmentCam extends Fragment
                     continue;
                 }
 
+                //@TODO Set video sizes and aspect ratio etc
+                mVideoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder.class));
+
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
@@ -297,6 +319,7 @@ public class FragmentCam extends Fragment
                         ImageFormat.JPEG, /*maxImages*/2);
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
+
 
                 // Find out if we need to swap dimension to get the preview size relative to sensor
                 // coordinate.
@@ -365,6 +388,8 @@ public class FragmentCam extends Fragment
                 mFlashSupported = available == null ? false : available;
 
                 mCameraId = cameraId;
+
+
                 return;
             }
         } catch (CameraAccessException e) {
@@ -376,6 +401,16 @@ public class FragmentCam extends Fragment
         }
     }
 
+    private Size chooseVideoSize(Size[] outputSizes) {
+        for (Size size : outputSizes) {
+            if (size.getWidth() == size.getHeight() * 4 / 3 && size.getWidth() <= 1080) {
+                return size;
+            }
+        }
+        Log.e(TAG, "Couldn't find any suitable video size");
+        return outputSizes[outputSizes.length - 1];
+    }
+
     /**
      */
     private void openCamera(int width, int height) {
@@ -384,6 +419,7 @@ public class FragmentCam extends Fragment
             requestCameraPermission();
             return;
         }
+        createDir();
         setUpCameraOutputs(width, height);
         configureTransform(width, height);
         Activity activity = getActivity();
@@ -392,6 +428,8 @@ public class FragmentCam extends Fragment
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
+            mediaRecorder = new MediaRecorder();
+
             manager.openCamera(mCameraId, mStateCallback, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -417,6 +455,10 @@ public class FragmentCam extends Fragment
             if (null != mImageReader) {
                 mImageReader.close();
                 mImageReader = null;
+            }
+            if (null != mediaRecorder) {
+                mediaRecorder.release();
+                mediaRecorder = null;
             }
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera closing.", e);
@@ -671,13 +713,141 @@ public class FragmentCam extends Fragment
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        if(event.getEventTime() >= event.getDownTime() + 1000) {
-            isHold = false;
-        } else {
-            isHold = true;
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_UP:
+                if(isHold) {
+                    Log.d(TAG, "stop recording");
+                    stopRecording();
+                    isHold = false;
+                }
+                else {
+                    Log.d(TAG, "was not recording on release");
+                }
+                break;
+            case MotionEvent.ACTION_DOWN:
+                Log.d(TAG, "start recording");
+                isHold = true;
+                startRecording();
+                break;
         }
         return true;
-    }   
+
+    }
+
+    private void startRecording() {
+        if(mCameraDevice == null || !mTextureView.isAvailable() || mPreviewSize == null){
+            return;
+        }
+        try {
+            closePreview();
+            initMediaRecorder();
+            SurfaceTexture texture = mTextureView.getSurfaceTexture();
+            assert texture != null;
+            texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
+            mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+            List<Surface> surfaces = new ArrayList<>();
+            Surface previewSurface = new Surface(texture);
+            surfaces.add(previewSurface);
+            mPreviewRequestBuilder.addTarget(previewSurface);
+            mRecorderSurface = mediaRecorder.getSurface();
+            surfaces.add(mRecorderSurface);
+            mPreviewRequestBuilder.addTarget(mRecorderSurface);
+            mCameraDevice.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
+                @Override
+                public void onConfigured(@NonNull CameraCaptureSession session) {
+                    mCaptureSession = session;
+                    updatePreview();
+                }
+
+                @Override
+                public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                    Log.d(TAG, "Video recording configuration failed");
+                }
+            }, mBackgroundHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void updatePreview() {
+        if(mCameraDevice == null){
+            return;
+        }
+        try {
+            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+            HandlerThread thread = new HandlerThread("Preview");
+            thread.start();
+            mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), null, mBackgroundHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createDir() {
+        directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                + File.separator + "ReceiptScanner");
+        if(!directory.exists() && !directory.isDirectory()) {
+            directory.mkdirs();
+        }
+
+    }
+
+    private void initMediaRecorder() throws IOException {
+        final Activity activity = getActivity();
+        if(activity == null){
+            return;
+        }
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        //@TODO filepath
+        String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
+        String videoPath = directory + File.separator + "MOV_" + timeStamp + ".mp4";
+        mediaRecorder.setOutputFile(videoPath);
+        Log.d(TAG, "save in: " + videoPath);
+        mediaRecorder.setVideoEncodingBitRate(10000000);
+        mediaRecorder.setVideoFrameRate(30);
+        mediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
+        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+        //mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        switch (mSensorOrientation) {
+            case SENSOR_ORIENTATION_DEFAULT_DEGREES:
+                mediaRecorder.setOrientationHint(ORIENTATIONS.get(rotation));
+                break;
+            case SENSOR_ORIENTATION_INVERSE_DEGREES:
+                mediaRecorder.setOrientationHint(INVERSE_ORIENTATIONS.get(rotation));
+                break;
+        }
+        mediaRecorder.prepare();
+    }
+
+    private void closePreview() {
+        if (mCaptureSession != null) {
+            mCaptureSession.close();
+            mCaptureSession = null;
+        }
+    }
+
+    private void stopRecording() {
+        // UI
+        // Stop recording
+        if(!isHold) {
+            return;
+        }
+        isHold = false;
+        Log.d(TAG, "stop recording method");
+        mediaRecorder.stop();
+        mediaRecorder.reset();
+
+        Activity activity = getActivity();
+        if (null != activity) {
+            Log.d(TAG, "Video saved: ");
+        }
+        createCameraPreviewSession();
+    }
 
     /**
      * Saves a JPEG {@link Image} into the specified {@link File}.
