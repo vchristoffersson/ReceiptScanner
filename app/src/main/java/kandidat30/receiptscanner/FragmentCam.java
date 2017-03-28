@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -308,7 +309,6 @@ public class FragmentCam extends Fragment
                     continue;
                 }
 
-                //@TODO Set video sizes and aspect ratio etc
                 mVideoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder.class));
 
                 // For still image captures, we use the largest available size.
@@ -716,7 +716,7 @@ public class FragmentCam extends Fragment
         switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
                 if(isHold) {
-                    Log.d(TAG, "stop recording");
+                    Log.d(TAG, "stop recording event");
                     stopRecording();
                     isHold = false;
                 }
@@ -725,7 +725,7 @@ public class FragmentCam extends Fragment
                 }
                 break;
             case MotionEvent.ACTION_DOWN:
-                Log.d(TAG, "start recording");
+                Log.d(TAG, "start recording event");
                 isHold = true;
                 startRecording();
                 break;
@@ -738,6 +738,7 @@ public class FragmentCam extends Fragment
         if(mCameraDevice == null || !mTextureView.isAvailable() || mPreviewSize == null){
             return;
         }
+        Log.d(TAG, "startrecordning");
         try {
             closePreview();
             initMediaRecorder();
@@ -757,6 +758,12 @@ public class FragmentCam extends Fragment
                 public void onConfigured(@NonNull CameraCaptureSession session) {
                     mCaptureSession = session;
                     updatePreview();
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mediaRecorder.start();
+                        }
+                    });
                 }
 
                 @Override
@@ -838,6 +845,12 @@ public class FragmentCam extends Fragment
             return;
         }
         isHold = false;
+        try {
+            mCaptureSession.stopRepeating();
+            mCaptureSession.abortCaptures();
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
         Log.d(TAG, "stop recording method");
         mediaRecorder.stop();
         mediaRecorder.reset();
