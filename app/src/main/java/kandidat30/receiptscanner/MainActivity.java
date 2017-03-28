@@ -24,8 +24,6 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import java.util.List;
-
 public class MainActivity extends FragmentActivity {
 
     private CustomViewPager mPager;
@@ -41,9 +39,10 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_main);
 
 
             mPager = (CustomViewPager) findViewById(R.id.pager);

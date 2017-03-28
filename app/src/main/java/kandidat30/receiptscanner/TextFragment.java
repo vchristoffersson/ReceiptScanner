@@ -2,10 +2,12 @@ package kandidat30.receiptscanner;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 /**
  * Created by jacobth on 2017-03-22.
@@ -52,7 +54,8 @@ public class TextFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         final View view = inflater.inflate(R.layout.fragment_text, container, false);
-
+        ImageView imageView = (ImageView)view.findViewById(R.id.imageView);
+        imageView.setImageBitmap(FragmentCam.bitmap);
         return view;
     }
 

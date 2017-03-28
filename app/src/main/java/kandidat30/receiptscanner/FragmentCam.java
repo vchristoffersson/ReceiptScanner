@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
@@ -32,6 +34,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.ParcelFileDescriptor;
+import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
 import android.support.v4.app.Fragment;
@@ -45,10 +49,13 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -59,6 +66,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+
 
 public class FragmentCam extends Fragment
         implements View.OnClickListener, View.OnTouchListener,
@@ -114,7 +122,7 @@ public class FragmentCam extends Fragment
         }
 
     };
-
+    public static Bitmap bitmap;
     private String mCameraId;
 
     private AutoFitTextureView mTextureView;
@@ -124,6 +132,15 @@ public class FragmentCam extends Fragment
     private boolean isHold = false;
     private File directory;
     private Size mVideoSize;
+    String videoPath;
+    ByteArrayOutputStream outputStream;
+
+    ParcelFileDescriptor[] descriptors;
+    ParcelFileDescriptor parcelRead;
+    ParcelFileDescriptor parcelWrite;
+
+    InputStream inputStream;
+
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
         @Override
@@ -233,6 +250,8 @@ public class FragmentCam extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         return inflater.inflate(R.layout.fragment_camera2_basic, container, false);
     }
 
@@ -761,6 +780,20 @@ public class FragmentCam extends Fragment
                         @Override
                         public void run() {
                             mediaRecorder.start();
+                            Log.d(TAG, "After start");
+                            /*
+                            int read;
+                            byte[] data = new byte[16384];
+                            try {
+                                while ((read = inputStream.read(data, 0, data.length)) != -1) {
+                                    outputStream.write(data, 0, read);
+                                }
+                                outputStream.flush();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            */
+
                         }
                     });
                 }
@@ -806,12 +839,24 @@ public class FragmentCam extends Fragment
         if(activity == null){
             return;
         }
+
+        //Write to bytearray instead of file
+        /*
+        outputStream = new ByteArrayOutputStream();
+
+        descriptors = ParcelFileDescriptor.createPipe();
+        parcelRead = new ParcelFileDescriptor(descriptors[0]);
+        parcelWrite = new ParcelFileDescriptor(descriptors[1]);
+
+        inputStream = new ParcelFileDescriptor.AutoCloseInputStream(parcelRead);
+        */
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         //@TODO filepath
         String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
-        String videoPath = directory + File.separator + "MOV_" + timeStamp + ".mp4";
+        videoPath = directory + File.separator + "MOV_" + timeStamp + ".mp4";
         mediaRecorder.setOutputFile(videoPath);
+        //mediaRecorder.setOutputFile(parcelWrite.getFileDescriptor());
         Log.d(TAG, "save in: " + videoPath);
         mediaRecorder.setVideoEncodingBitRate(10000000);
         mediaRecorder.setVideoFrameRate(30);
@@ -858,7 +903,34 @@ public class FragmentCam extends Fragment
         if (null != activity) {
             Log.d(TAG, "Video saved: ");
         }
+
+        Log.d(TAG, "convert to bytes: ");
+        byte[] bytes = null;
+        try {
+            bytes = convert(videoPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "sendvideo: ");
+        Send.sendVideo(bytes);
+
         createCameraPreviewSession();
+    }
+
+    public byte[] convert(String path) throws IOException {
+
+        FileInputStream fis = new FileInputStream(path);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        byte[] b = new byte[1024];
+
+        for (int readNum; (readNum = fis.read(b)) != -1;) {
+            bos.write(b, 0, readNum);
+        }
+
+        byte[] bytes = bos.toByteArray();
+
+        return bytes;
     }
 
     /**
