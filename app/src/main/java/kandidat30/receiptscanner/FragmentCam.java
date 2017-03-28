@@ -168,6 +168,8 @@ public class FragmentCam extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
+            String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
+            mFile = new File(directory + File.separator + "IMG_" + timeStamp + ".jpg");
             mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
         }
 
@@ -690,10 +692,6 @@ public class FragmentCam extends Fragment
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.picture: {
-                takePicture();
-                break;
-            }
             case R.id.info: {
                 Activity activity = getActivity();
                 if (null != activity) {
@@ -713,21 +711,22 @@ public class FragmentCam extends Fragment
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
+        //down = start, event = now
+        if(event.getEventTime() > event.getDownTime() + 1000 && !isHold){
+            isHold = true;
+            startRecording();
+        }
         switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
                 if(isHold) {
-                    Log.d(TAG, "stop recording event");
+                    Log.d(TAG, "stop recording ontouch");
                     stopRecording();
                     isHold = false;
                 }
                 else {
-                    Log.d(TAG, "was not recording on release");
+                    Log.d(TAG, "take pic");
+                    takePicture();
                 }
-                break;
-            case MotionEvent.ACTION_DOWN:
-                Log.d(TAG, "start recording event");
-                isHold = true;
-                startRecording();
                 break;
         }
         return true;
