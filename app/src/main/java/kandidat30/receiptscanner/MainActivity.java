@@ -1,37 +1,29 @@
 package kandidat30.receiptscanner;
 
-import android.content.Context;
-import android.hardware.Camera;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.util.Size;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends FragmentActivity {
+import org.opencv.android.OpenCVLoader;
+
+import java.util.HashMap;
+
+public class MainActivity extends FragmentActivity implements FragmentCam.OnSendListener{
 
     private CustomViewPager mPager;
     private PagerAdapter mPagerAdapter;
 
     private Fragment cameraFragment;
     private Fragment textFragment;
-    private Fragment cam;
+    private FragmentCam cam;
 
     private static final int NUM_PAGES = 2;
     public static final int TEXT_PAGE = 1;
@@ -39,6 +31,13 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("opencv", "oncreate");
+        if (!OpenCVLoader.initDebug()) {
+            Log.e(this.getClass().getSimpleName(), "  OpenCVLoader.initDebug(), not working.");
+        } else {
+            Log.d(this.getClass().getSimpleName(), "  OpenCVLoader.initDebug(), working.");
+        }
+        Log.d("opencv", "after cv stuff");
 
         super.onCreate(savedInstanceState);
 
@@ -110,4 +109,33 @@ public class MainActivity extends FragmentActivity {
             return NUM_PAGES;
         }
     }
+
+    @Override
+    public void onSend(byte[] data) {
+        new SendFilesTask().execute(new MediaPath(cam.getDirectory().getPath(), data));
+    }
+
+    private class SendFilesTask extends AsyncTask<MediaPath, Integer, Long> {
+        protected void onProgressUpdate(Integer... progress) {
+        }
+
+        @Override
+        protected Long doInBackground(MediaPath... params) {
+            long totalSize = 0;
+            Send.sendVideo(params[0]);
+
+            return totalSize;
+        }
+
+        @Override
+        protected void onPostExecute(Long result) {
+
+        }
+
+        @Override
+        protected void onPreExecute() {
+
+        }
+    }
+
 }

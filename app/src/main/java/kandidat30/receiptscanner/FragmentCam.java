@@ -50,6 +50,9 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.opencv.core.Mat;
+import org.opencv.videoio.VideoCapture;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -122,7 +125,6 @@ public class FragmentCam extends Fragment
         }
 
     };
-    public static Bitmap bitmap;
     private String mCameraId;
 
     private AutoFitTextureView mTextureView;
@@ -133,13 +135,8 @@ public class FragmentCam extends Fragment
     private File directory;
     private Size mVideoSize;
     String videoPath;
-    ByteArrayOutputStream outputStream;
+    private OnSendListener mCallback;
 
-    ParcelFileDescriptor[] descriptors;
-    ParcelFileDescriptor parcelRead;
-    ParcelFileDescriptor parcelWrite;
-
-    InputStream inputStream;
 
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
@@ -827,11 +824,10 @@ public class FragmentCam extends Fragment
 
     private void createDir() {
         directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                + File.separator + "ReceiptScanner");
+                + File.separator + R.string.directory);
         if(!directory.exists() && !directory.isDirectory()) {
             directory.mkdirs();
         }
-
     }
 
     private void initMediaRecorder() throws IOException {
@@ -904,18 +900,20 @@ public class FragmentCam extends Fragment
             Log.d(TAG, "Video saved: ");
         }
 
-        Log.d(TAG, "convert to bytes: ");
+        mCallback.onSend(convertTyBytes());
+
+        createCameraPreviewSession();
+    }
+
+
+    private byte[] convertTyBytes() {
         byte[] bytes = null;
         try {
             bytes = convert(videoPath);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        Log.d(TAG, "sendvideo: ");
-        Send.sendVideo(bytes);
-
-        createCameraPreviewSession();
+        return bytes;
     }
 
     public byte[] convert(String path) throws IOException {
@@ -990,4 +988,26 @@ public class FragmentCam extends Fragment
         }
 
     }
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        try {
+            mCallback = (OnSendListener) getActivity();
+        } catch (ClassCastException e) {
+            throw new ClassCastException(getActivity().toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+
+    public interface OnSendListener {
+        void onSend(byte[] data);
+    }
+
+    public File getDirectory(){
+        return directory;
+    }
+
 }

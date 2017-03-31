@@ -1,13 +1,19 @@
 package kandidat30.receiptscanner;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Created by jacobth on 2017-03-22.
@@ -55,8 +61,31 @@ public class TextFragment extends Fragment{
 
         final View view = inflater.inflate(R.layout.fragment_text, container, false);
         ImageView imageView = (ImageView)view.findViewById(R.id.imageView);
-        imageView.setImageBitmap(FragmentCam.bitmap);
+        imageView.setImageBitmap(getLatestImage());
         return view;
+    }
+
+    private Bitmap getLatestImage() {
+        ArrayList<String> f = new ArrayList<String>();// list of file paths
+        File[] listFile;
+
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                + File.separator + R.string.directory);
+
+            if (file.isDirectory())
+            {
+                listFile = file.listFiles();
+
+                for (int i = 0; i < listFile.length; i++)
+                {
+                    f.add(listFile[i].getAbsolutePath());
+
+                }
+            }
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        Bitmap bitmap = BitmapFactory.decodeFile(f.get(0), options);
+        return bitmap;
     }
 
     public void onButtonPressed(Uri uri) {
