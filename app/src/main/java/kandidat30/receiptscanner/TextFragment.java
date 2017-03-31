@@ -5,14 +5,12 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ImageView;
 import android.widget.ListView;
 
 import java.io.File;
@@ -31,8 +29,9 @@ public class TextFragment extends Fragment{
 
     private SwipeRefreshLayout refreshLayout;
     private CustomListAdapter adapter;
-    private ListView textView;
+    private ListView listView;
     private List<String> images;
+    private String path;
 
     public TextFragment() {
 
@@ -70,22 +69,27 @@ public class TextFragment extends Fragment{
 
         images = getLatestImage();
 
-        adapter = new CustomListAdapter(getContext(), images);
-        textView = (ListView)view.findViewById(R.id.textView);
-        textView.setAdapter(adapter);
-        textView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        final SwipeDetector swipeDetector = new SwipeDetector();
+
+        adapter = new CustomListAdapter(getContext(), images, path);
+        listView = (ListView)view.findViewById(R.id.listView);
+        listView.setAdapter(adapter);
+        listView.setOnTouchListener(swipeDetector);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                CustomViewPager mPager = (CustomViewPager) getActivity().findViewById(R.id.pager);
-                mPager.setPagingEnabled(false);
 
-                Fragment fr = new ImageFragment();
-                Bundle args = new Bundle();
-                args.putInt("pos", position);
-                fr.setArguments(args);
-                FragmentChangeListener fc=(FragmentChangeListener)getActivity();
-                fc.replaceFragment(fr);
+                    CustomViewPager mPager = (CustomViewPager) getActivity().findViewById(R.id.pager);
+                    mPager.setPagingEnabled(false);
+
+                    Fragment fr = new ImageFragment();
+                    Bundle args = new Bundle();
+                    args.putInt("pos", position);
+                    fr.setArguments(args);
+                    FragmentChangeListener fc = (FragmentChangeListener) getActivity();
+                    fc.replaceFragment(fr);
+
             }
         });
 
@@ -137,6 +141,8 @@ public class TextFragment extends Fragment{
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                 + File.separator + R.string.directory);
 
+        path = file.getAbsolutePath() + "/";
+
         if (file.isDirectory())
         {
             listFile = file.listFiles();
@@ -160,6 +166,14 @@ public class TextFragment extends Fragment{
 
     public void addImage(String name) {
         images.add(name);
+    }
+
+    private void removeFile(String name) {
+
+        String absolute = path + "/" + name;
+
+        File f = new File(absolute);
+        f.delete();
     }
 
 }

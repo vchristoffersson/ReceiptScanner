@@ -23,14 +23,20 @@
         android:layout_height="wrap_content"
         />
 
+    <View
+        android:id="@+id/view"
+        android:layout_width="wrap_content"
+        android:layout_height="26dp"
+        android:layout_alignParentBottom="true"
+        />
+
     <Button
         android:id="@+id/picture"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:background="@drawable/roundcam"
-        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
+        android:layout_above="@id/view"
         />
-
 </RelativeLayout>

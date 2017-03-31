@@ -6,23 +6,13 @@
 
     <ImageView
         android:id="@+id/icon"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
-        android:layout_marginBottom="5dp"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginLeft="5dp"
         android:layout_marginRight="5dp"
         android:layout_marginTop="10dp"
-        android:src="@mipmap/ic_launcher" />
-
-    <ProgressBar
-        android:id="@+id/loader"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
-        android:layout_marginBottom="5dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="10dp"
-        android:visibility="invisible"/>
+        android:src="@drawable/save" />
 
     <TextView
         android:id="@+id/nameText"
@@ -47,5 +37,16 @@
         android:ellipsize="marquee"
         android:text="Description"
         android:textSize="12sp" />
+
+    <ImageButton
+        android:id="@+id/deleteSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="5dp"
+        android:text="Delete"
+        android:src="@drawable/del"
+        android:background="@null" />
 
 </RelativeLayout>
