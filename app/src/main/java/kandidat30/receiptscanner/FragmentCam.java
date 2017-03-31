@@ -123,7 +123,7 @@ public class FragmentCam extends Fragment
     };
     private String mCameraId;
 
-    private AutoFitTextureView mTextureView;
+    private TextureView mTextureView;
     private CameraCaptureSession mCaptureSession;
     private CameraDevice mCameraDevice;
     private Size mPreviewSize;
@@ -252,8 +252,8 @@ public class FragmentCam extends Fragment
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         view.findViewById(R.id.picture).setOnClickListener(this);
         view.findViewById(R.id.picture).setOnTouchListener(this);
-        view.findViewById(R.id.info).setOnClickListener(this);
-        mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
+//        view.findViewById(R.id.info).setOnClickListener(this);
+        mTextureView = (TextureView) view.findViewById(R.id.texture);
     }
 
     @Override
@@ -387,15 +387,7 @@ public class FragmentCam extends Fragment
                         rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
                         maxPreviewHeight, largest);
 
-                // We fit the aspect ratio of TextureView to the size of preview we picked.
-                int orientation = getResources().getConfiguration().orientation;
-                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    mTextureView.setAspectRatio(
-                            mPreviewSize.getWidth(), mPreviewSize.getHeight());
-                } else {
-                    mTextureView.setAspectRatio(
-                            mPreviewSize.getHeight(), mPreviewSize.getWidth());
-                }
+
 
                 // Check if the flash is supported.
                 Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
@@ -909,6 +901,10 @@ public class FragmentCam extends Fragment
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        File video = new File(videoPath);
+        video.delete();
+
         return bytes;
     }
 

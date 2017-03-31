@@ -21,12 +21,12 @@ import java.util.Date;
 
 public class Send {
 
-    private static final String SERVER_IP = "http://192.168.43.129:3000/";
+    private static final int TIMEOUT = 25000;
 
-    public static Bitmap sendVideo(MediaPath mediaPath){
+    private static final String SERVER_IP = "http://192.168.1.7:3000/";
+
+    public static MediaPath sendVideo(MediaPath mediaPath){
         try {
-
-            //Thread.sleep(2000);
             URL url = new URL(SERVER_IP + "upload-video");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
@@ -38,8 +38,8 @@ public class Send {
             conn.setRequestProperty("Cache-Control", "no-cache");
             conn.setRequestProperty("Content-Type", "multipart/form-data");
 
-            conn.setReadTimeout(35000);
-            conn.setConnectTimeout(35000);
+            conn.setReadTimeout(TIMEOUT);
+            conn.setConnectTimeout(TIMEOUT);
 
             OutputStream os = conn.getOutputStream();
             os.write(mediaPath.getData());
@@ -58,15 +58,19 @@ public class Send {
             File file = new File(mediaPath.getPath() + File.separator + "IMG_" + timeStamp + ".png");
 
             OutputStream outputStream = null;
+
             try {
                 outputStream = new FileOutputStream(file);
                 outputStream.write(byteArray);
+
             } catch (IOException e) {
                 e.printStackTrace();
+
             } finally {
                 if (outputStream != null) {
                     try {
                         outputStream.close();
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -74,9 +78,8 @@ public class Send {
             }
 
             conn.disconnect();
-            Log.d("Camera2Basic", "in send video done");
 
-            return b;
+            return new MediaPath(file.getName() ,b);
 
         } catch (MalformedURLException e) {
             e.printStackTrace();

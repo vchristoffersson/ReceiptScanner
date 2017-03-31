@@ -1,24 +1,31 @@
 package kandidat30.receiptscanner;
 
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends FragmentActivity implements FragmentCam.OnSendListener{
+import java.util.ArrayList;
+import java.util.List;
+
+public class MainActivity extends FragmentActivity implements FragmentCam.OnSendListener, TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener{
 
     private CustomViewPager mPager;
     private PagerAdapter mPagerAdapter;
 
-    private Fragment cameraFragment;
-    private Fragment textFragment;
-    private FragmentCam cam;
+    private TextFragment textFragment;
+    private FragmentCam cameraFragment;
+
+    public static List<Bitmap> imageList;
 
     private static final int NUM_PAGES = 2;
     public static final int TEXT_PAGE = 1;
@@ -35,7 +42,11 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         }
         Log.d("opencv", "after cv stuff");
         */
+
+
         super.onCreate(savedInstanceState);
+
+        imageList = new ArrayList<>();
 
         setContentView(R.layout.activity_main);
 
@@ -83,6 +94,11 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+    }
+
     private class ScreenSlidePagerAdapter extends FragmentStatePagerAdapter {
         public ScreenSlidePagerAdapter(FragmentManager fm) {
             super(fm);
@@ -91,8 +107,8 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         @Override
         public Fragment getItem(int position) {
             if(position == CAM_PAGE) {
-                cam = new FragmentCam();
-                return cam;
+                cameraFragment = new FragmentCam();
+                return cameraFragment;
             }
             else {
                 textFragment = new TextFragment();
@@ -108,17 +124,20 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     @Override
     public void onSend(byte[] data) {
-        new SendFilesTask().execute(new MediaPath(cam.getDirectory().getPath(), data));
+        new SendFilesTask().execute(new MediaPath(cameraFragment.getDirectory().getPath(), data));
     }
 
     private class SendFilesTask extends AsyncTask<MediaPath, Integer, Long> {
+
+        private MediaPath image;
+
         protected void onProgressUpdate(Integer... progress) {
         }
 
         @Override
         protected Long doInBackground(MediaPath... params) {
             long totalSize = 0;
-            Send.sendVideo(params[0]);
+            image = Send.sendVideo(params[0]);
 
             return totalSize;
         }
@@ -126,6 +145,12 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         @Override
         protected void onPostExecute(Long result) {
 
+            if(image != null) {
+                imageList.add(image.getImage());
+
+                textFragment.addImage(image.getPath());
+                textFragment.notifyAdapter();
+            }
         }
 
         @Override
@@ -134,4 +159,12 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         }
     }
 
+    @Override
+    public void replaceFragment(Fragment fragment) {
+        FragmentManager fragmentManager = getSupportFragmentManager();;
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_container, fragment);
+        fragmentTransaction.addToBackStack(fragment.toString());
+        fragmentTransaction.commit();
+    }
 }
