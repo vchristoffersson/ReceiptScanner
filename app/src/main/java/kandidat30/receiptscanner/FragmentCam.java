@@ -49,10 +49,6 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-
-import org.opencv.core.Mat;
-import org.opencv.videoio.VideoCapture;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;

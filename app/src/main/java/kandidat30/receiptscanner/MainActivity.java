@@ -8,13 +8,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-
-import org.opencv.android.OpenCVLoader;
-
-import java.util.HashMap;
 
 public class MainActivity extends FragmentActivity implements FragmentCam.OnSendListener{
 
@@ -31,6 +26,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        /*
         Log.d("opencv", "oncreate");
         if (!OpenCVLoader.initDebug()) {
             Log.e(this.getClass().getSimpleName(), "  OpenCVLoader.initDebug(), not working.");
@@ -38,7 +34,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
             Log.d(this.getClass().getSimpleName(), "  OpenCVLoader.initDebug(), working.");
         }
         Log.d("opencv", "after cv stuff");
-
+        */
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);

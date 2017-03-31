@@ -1,8 +1,5 @@
 package kandidat30.receiptscanner;
 
-
-import java.io.File;
-
 public class MediaPath {
 
     private String path;
