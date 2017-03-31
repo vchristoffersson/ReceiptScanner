@@ -10,6 +10,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
@@ -78,18 +79,15 @@ public class TextFragment extends Fragment{
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                CustomViewPager mPager = (CustomViewPager) getActivity().findViewById(R.id.pager);
+                mPager.setPagingEnabled(false);
 
-
-                    CustomViewPager mPager = (CustomViewPager) getActivity().findViewById(R.id.pager);
-                    mPager.setPagingEnabled(false);
-
-                    Fragment fr = new ImageFragment();
-                    Bundle args = new Bundle();
-                    args.putInt("pos", position);
-                    fr.setArguments(args);
-                    FragmentChangeListener fc = (FragmentChangeListener) getActivity();
-                    fc.replaceFragment(fr);
-
+                Fragment fr = new ImageFragment();
+                Bundle args = new Bundle();
+                args.putInt("pos", position);
+                fr.setArguments(args);
+                FragmentChangeListener fc = (FragmentChangeListener) getActivity();
+                fc.replaceFragment(fr);
             }
         });
 
@@ -99,6 +97,21 @@ public class TextFragment extends Fragment{
             public void onRefresh() {
                 notifyAdapter();
                 refreshLayout.setRefreshing(false);
+            }
+        });
+
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                int topRowVerticalPosition =
+                        (listView == null || listView.getChildCount() == 0) ?
+                                0 : listView.getChildAt(0).getTop();
+                refreshLayout.setEnabled(firstVisibleItem == 0 && topRowVerticalPosition >= 0);
             }
         });
 
