@@ -13,6 +13,7 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,6 +126,8 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
     @Override
     public void onSend(byte[] data) {
         new SendFilesTask().execute(new MediaPath(cameraFragment.getDirectory().getPath(), data));
+
+        Toast.makeText(this, "Video is being processed!", Toast.LENGTH_LONG).show();
     }
 
     private class SendFilesTask extends AsyncTask<MediaPath, Integer, Long> {
@@ -150,6 +153,13 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
                 textFragment.addImage(image.getPath());
                 textFragment.notifyAdapter();
+                textFragment.hideEmptyText();
+
+                Toast.makeText(getApplicationContext(), "Video process completed!", Toast.LENGTH_SHORT).show();
+            }
+
+            else {
+                Toast.makeText(getApplicationContext(), "Video process failed!", Toast.LENGTH_SHORT).show();
             }
         }
 

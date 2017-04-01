@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,6 +32,8 @@ public class TextFragment extends Fragment{
     private SwipeRefreshLayout refreshLayout;
     private CustomListAdapter adapter;
     private ListView listView;
+    private TextView emptyView;
+
     private List<String> images;
     private String path;
 
@@ -69,6 +72,12 @@ public class TextFragment extends Fragment{
        // imageView.setImageBitmap(getLatestImage());
 
         images = getLatestImage();
+
+        emptyView = (TextView)view.findViewById(R.id.empty);
+
+        if(images.isEmpty()) {
+            showEmptyText();
+        }
 
         final SwipeDetector swipeDetector = new SwipeDetector();
 
@@ -187,6 +196,14 @@ public class TextFragment extends Fragment{
 
         File f = new File(absolute);
         f.delete();
+    }
+
+    public void hideEmptyText() {
+        emptyView.setVisibility(View.INVISIBLE);
+    }
+
+    public void showEmptyText() {
+        emptyView.setVisibility(View.VISIBLE);
     }
 
 }
