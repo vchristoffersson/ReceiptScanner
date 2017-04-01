@@ -63,7 +63,7 @@ public class CameraFragment extends Fragment implements FragmentCompat.OnRequest
     private static final int REQUEST_MULTIPLE_PERMISSION = 300;
     private static final int AMOUNT_OF_PICTURES = 3;
     private static final long[] EXPOSURE_TIMES = new long[]{};
-    private AutoFitTextureView cameraView;
+    private TextureView cameraView;
     private Button cameraButton;
     private CameraDevice device;
     private CameraManager manager;
@@ -104,7 +104,7 @@ public class CameraFragment extends Fragment implements FragmentCompat.OnRequest
                 captureFromCamera();
             }
         });
-        cameraView = (AutoFitTextureView) view.findViewById(R.id.camera_view);
+        cameraView = (TextureView) view.findViewById(R.id.camera_view);
         cameraView.setSurfaceTextureListener(surfaceTextureListener);
 
         return view;
@@ -372,7 +372,7 @@ public class CameraFragment extends Fragment implements FragmentCompat.OnRequest
     }
 
     private void updatePreview() {
-        captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+        captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.COLOR_CORRECTION_MODE_FAST);
         try {
             captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, backgroundHandler);
         } catch (CameraAccessException e) {

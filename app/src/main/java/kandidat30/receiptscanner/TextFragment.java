@@ -88,6 +88,7 @@ public class TextFragment extends Fragment{
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
                 CustomViewPager mPager = (CustomViewPager) getActivity().findViewById(R.id.pager);
                 mPager.setPagingEnabled(false);
 
@@ -104,6 +105,11 @@ public class TextFragment extends Fragment{
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+
+                if(images.isEmpty()) {
+                    showEmptyText();
+                }
+
                 notifyAdapter();
                 refreshLayout.setRefreshing(false);
             }

@@ -1,6 +1,8 @@
 package kandidat30.receiptscanner;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +11,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.List;
@@ -18,6 +21,7 @@ public class CustomListAdapter extends BaseAdapter {
     private final List<String> images;
     private ImageView imageView;
     private String path;
+    private Context context;
 
     private LayoutInflater mInflater;
 
@@ -25,6 +29,7 @@ public class CustomListAdapter extends BaseAdapter {
         mInflater = LayoutInflater.from(context);
         this.images = images;
         this.path = path;
+        this.context = context;
     }
 
     @Override
@@ -52,10 +57,7 @@ public class CustomListAdapter extends BaseAdapter {
 
         imageView = (ImageView) convertView.findViewById(R.id.icon);
         TextView nameText = (TextView) convertView.findViewById(R.id.nameText);
-        TextView dateText = (TextView) convertView.findViewById(R.id.dateText);
-
         nameText.setText(images.get(position));
-        dateText.setText("Position " + (position + 1));
 
         ImageButton deleteBtn = (ImageButton)convertView.findViewById(R.id.deleteSave);
         deleteBtn.setFocusable(false);
@@ -63,11 +65,7 @@ public class CustomListAdapter extends BaseAdapter {
         deleteBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                String name = images.get(position);
-                images.remove(position);
-                MainActivity.imageList.remove(position);
-                removeFile(name);
-                notifyDataSetChanged();
+                handleDialog(position);
             }
         });
 
@@ -80,6 +78,32 @@ public class CustomListAdapter extends BaseAdapter {
 
         File f = new File(absolute);
         f.delete();
+    }
+
+    private void handleDialog(final int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Are you sure?");
+
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String name = images.get(position);
+                images.remove(position);
+                MainActivity.imageList.remove(position);
+                removeFile(name);
+                notifyDataSetChanged();
+
+                Toast.makeText(context, "Deleted", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 
 }
