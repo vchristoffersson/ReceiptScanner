@@ -509,11 +509,13 @@ public class FragmentCam extends Fragment
     /**
      */
     private void openCamera(int width, int height) {
+        /*
         if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission();
             return;
         }
+        */
         setUpCameraOutputs(width, height);
         configureTransform(width, height);
         Activity activity = getActivity();

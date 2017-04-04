@@ -1,10 +1,13 @@
 package kandidat30.receiptscanner;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -12,6 +15,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.util.LruCache;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,7 +23,9 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends FragmentActivity implements FragmentCam.OnSendListener, TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener{
 
@@ -32,6 +38,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     public static LruCache<String, Bitmap> imageMap;
 
+    private static final int REQUEST_PERMISSIONS = 100;
     private static final int NUM_PAGES = 2;
     public static final int TEXT_PAGE = 1;
     public static final int CAM_PAGE = 0;
@@ -39,6 +46,9 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        this.requestPermissions(new String[]{Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSIONS);
 
         int size = 70 * 1024 * 1024;
         imageMap = new LruCache<>(size);
@@ -189,5 +199,27 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
             directory.mkdirs();
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
+        Log.d("PERMISSION", "checkin if permission was granted");
+
+        Map<String, Integer> permissionsMap = new HashMap<>();
+        permissionsMap.put(Manifest.permission.CAMERA, PackageManager.PERMISSION_GRANTED);
+        permissionsMap.put(Manifest.permission.WRITE_EXTERNAL_STORAGE, PackageManager.PERMISSION_GRANTED);
+
+        for (int i = 0; i < permissions.length; i++)
+            permissionsMap.put(permissions[i], grantResults[i]);
+
+        if (permissionsMap.get(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                && permissionsMap.get(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+
+            Log.d("PERMISSION", "All permissions was granted");
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        } else {
+            Log.d("PERMISSION", "All permissions was not granted");
+        }
+    }
+
 
 }
