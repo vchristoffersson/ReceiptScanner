@@ -144,7 +144,6 @@ public class FragmentCam extends Fragment
     private CameraDevice mCameraDevice;
     private Size mPreviewSize;
     private boolean isHold = false;
-    private File directory;
     private Size mVideoSize;
     String videoPath;
     private OnSendListener mCallback;
@@ -197,7 +196,7 @@ public class FragmentCam extends Fragment
             Log.d(TAG, "onimageavailable()");
 
             String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
-            mFile = new File(directory + File.separator + "IMG_" + timeStamp + ".jpg");
+            mFile = new File(dir + File.separator + "IMG_" + timeStamp + ".jpg");
             Image img = reader.acquireNextImage();
             if(img != null) {
                 mBackgroundHandler.post(new ImageSaver(img, mFile));
@@ -925,7 +924,7 @@ public class FragmentCam extends Fragment
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         //@TODO filepath
         String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
-        videoPath = directory + File.separator + "MOV_" + timeStamp + ".mp4";
+        videoPath = dir + File.separator + "MOV_" + timeStamp + ".mp4";
         mediaRecorder.setOutputFile(videoPath);
         //mediaRecorder.setOutputFile(parcelWrite.getFileDescriptor());
         Log.d(TAG, "save in: " + videoPath);
@@ -1085,8 +1084,5 @@ public class FragmentCam extends Fragment
         void onSend(byte[] data);
     }
 
-    public File getDirectory(){
-        return directory;
-    }
 
 }

@@ -22,12 +22,8 @@ import java.util.List;
 public class TextFragment extends Fragment{
 
     private OnFragmentInteractionListener mListener;
-
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    private String mParam1;
-    private String mParam2;
+    private static final String ARG_PARAM1 = "dir";
+    private String dir;
 
     private SwipeRefreshLayout refreshLayout;
     private CustomListAdapter adapter;
@@ -46,11 +42,10 @@ public class TextFragment extends Fragment{
         void replaceFragment(Fragment fragment);
     }
 
-    public static TextFragment newInstance(String param1, String param2) {
+    public static TextFragment newInstance(String param1) {
         TextFragment fragment = new TextFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
     }
@@ -59,8 +54,7 @@ public class TextFragment extends Fragment{
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            dir = getArguments().getString(ARG_PARAM1);
         }
     }
 
@@ -166,10 +160,9 @@ public class TextFragment extends Fragment{
 
         File[] listFile;
 
-        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                + File.separator + R.string.directory);
+        File file = new File(dir);
 
-        path = file.getAbsolutePath() + "/";
+        path = dir + "/";
 
         if (file.isDirectory())
         {

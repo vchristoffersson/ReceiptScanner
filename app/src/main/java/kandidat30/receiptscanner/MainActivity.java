@@ -115,10 +115,16 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         public Fragment getItem(int position) {
             if(position == CAM_PAGE) {
                 cameraFragment = new FragmentCam();
+                Bundle args = new Bundle();
+                args.putString("dir", directory.getPath());
+                cameraFragment.setArguments(args);
                 return cameraFragment;
             }
             else {
                 textFragment = new TextFragment();
+                Bundle args = new Bundle();
+                args.putString("dir", directory.getPath());
+                textFragment.setArguments(args);
                 return textFragment;
             }
         }
@@ -131,7 +137,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     @Override
     public void onSend(byte[] data) {
-        new SendFilesTask().execute(new MediaPath(cameraFragment.getDirectory().getPath(), data));
+        new SendFilesTask().execute(new MediaPath(directory.getPath(), data));
 
         Toast.makeText(this, "Video is being processed!", Toast.LENGTH_LONG).show();
     }
