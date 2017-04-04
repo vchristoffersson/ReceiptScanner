@@ -80,6 +80,16 @@ public class FragmentCam extends Fragment
     private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 1;
 
+    private static final String ARG_PARAM1 = "dir";
+    private String dir;
+
+    public static FragmentCam newInstance(String param1) {
+        FragmentCam fragment = new FragmentCam();
+        Bundle args = new Bundle();
+        args.putString(ARG_PARAM1, param1);
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -310,6 +320,14 @@ public class FragmentCam extends Fragment
 
     public static FragmentCam newInstance() {
         return new FragmentCam();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            dir = getArguments().getString(ARG_PARAM1);
+        }
     }
 
     @Override
