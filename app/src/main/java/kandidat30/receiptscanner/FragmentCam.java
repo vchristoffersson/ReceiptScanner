@@ -14,6 +14,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Camera;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
@@ -49,6 +50,8 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -77,6 +80,7 @@ public class FragmentCam extends Fragment
     private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
     private static final int REQUEST_CAMERA_PERMISSION = 1;
 
+
     static {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);
         ORIENTATIONS.append(Surface.ROTATION_90, 0);
@@ -95,6 +99,8 @@ public class FragmentCam extends Fragment
     private static final int STATE_PREVIEW = 0;
     private static final int STATE_WAITING_LOCK = 1;
     private static final int STATE_WAITING_PRECAPTURE = 2;
+    private static final int STATE_WAITING_NON_PRECAPTURE = 3;
+    private static final int STATE_PICTURE_TAKEN = 4;
     private static final int MAX_PREVIEW_WIDTH = 1920;
     private static final int MAX_PREVIEW_HEIGHT = 1080;
 
@@ -178,9 +184,16 @@ public class FragmentCam extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
+            Log.d(TAG, "onimageavailable()");
+
             String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
             mFile = new File(directory + File.separator + "IMG_" + timeStamp + ".jpg");
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            Image img = reader.acquireNextImage();
+            if(img != null) {
+                mBackgroundHandler.post(new ImageSaver(img, mFile));
+            } else {
+                Log.d(TAG, "img was null");
+            }
         }
 
     };
@@ -200,6 +213,65 @@ public class FragmentCam extends Fragment
 
     private CameraCaptureSession.CaptureCallback mCaptureCallback
             = new CameraCaptureSession.CaptureCallback() {
+        private void process(CaptureResult result) {
+            switch (mState) {
+                case STATE_PREVIEW: {
+                    // We have nothing to do when the camera preview is working normally.
+                    break;
+                }
+                case STATE_WAITING_LOCK: {
+                    Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+                    if (afState == null) {
+                        captureStillPicture();
+                    } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState ||
+                            CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState) {
+                        // CONTROL_AE_STATE can be null on some devices
+                        Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                        if (aeState == null ||
+                                aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
+                            mState = STATE_PICTURE_TAKEN;
+                            captureStillPicture();
+                        } else {
+                            runPrecaptureSequence();
+                        }
+                    }
+                    break;
+                }
+                case STATE_WAITING_PRECAPTURE: {
+                    // CONTROL_AE_STATE can be null on some devices
+                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                    if (aeState == null ||
+                            aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
+                            aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED) {
+                        mState = STATE_WAITING_NON_PRECAPTURE;
+                    }
+                    break;
+                }
+                case STATE_WAITING_NON_PRECAPTURE: {
+                    // CONTROL_AE_STATE can be null on some devices
+                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                    if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
+                        mState = STATE_PICTURE_TAKEN;
+                        captureStillPicture();
+                    }
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void onCaptureProgressed(@NonNull CameraCaptureSession session,
+                                        @NonNull CaptureRequest request,
+                                        @NonNull CaptureResult partialResult) {
+            process(partialResult);
+        }
+
+        @Override
+        public void onCaptureCompleted(@NonNull CameraCaptureSession session,
+                                       @NonNull CaptureRequest request,
+                                       @NonNull TotalCaptureResult result) {
+            process(result);
+        }
     };
     private Surface mRecorderSurface;
 
@@ -425,7 +497,6 @@ public class FragmentCam extends Fragment
             requestCameraPermission();
             return;
         }
-        createDir();
         setUpCameraOutputs(width, height);
         configureTransform(width, height);
         Activity activity = getActivity();
@@ -592,6 +663,8 @@ public class FragmentCam extends Fragment
      * Initiate a still image capture.
      */
     private void takePicture() {
+        Log.d(TAG, "takepicture()");
+
         lockFocus();
     }
 
@@ -599,6 +672,7 @@ public class FragmentCam extends Fragment
      * Lock the focus as the first step for a still image capture.
      */
     private void lockFocus() {
+        Log.d(TAG, "lockfocus()");
         try {
             // This is how to tell the camera to lock focus.
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
@@ -617,6 +691,7 @@ public class FragmentCam extends Fragment
      * we get a response in {@link #mCaptureCallback} from {@link #lockFocus()}.
      */
     private void runPrecaptureSequence() {
+        Log.d(TAG, "runprecapturesequence()");
         try {
             // This is how to tell the camera to trigger.
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
@@ -635,6 +710,7 @@ public class FragmentCam extends Fragment
      * {@link #mCaptureCallback} from both {@link #lockFocus()}.
      */
     private void captureStillPicture() {
+        Log.d(TAG, "capturestillpicture()");
         try {
             final Activity activity = getActivity();
             if (null == activity || null == mCameraDevice) {
@@ -677,6 +753,7 @@ public class FragmentCam extends Fragment
     }
 
     private void unlockFocus() {
+        Log.d(TAG, "unlockfocus()");
         try {
             // Reset the auto-focus trigger
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
@@ -807,14 +884,6 @@ public class FragmentCam extends Fragment
             mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), null, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void createDir() {
-        directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                + File.separator + R.string.directory);
-        if(!directory.exists() && !directory.isDirectory()) {
-            directory.mkdirs();
         }
     }
 

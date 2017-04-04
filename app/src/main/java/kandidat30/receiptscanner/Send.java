@@ -23,7 +23,7 @@ public class Send {
 
     private static final int TIMEOUT = 25000;
 
-    private static final String SERVER_IP = "http://192.168.1.7:3000/";
+    private static final String SERVER_IP = "http://192.168.43.54:3000/";
 
     public static MediaPath sendVideo(MediaPath mediaPath){
         try {

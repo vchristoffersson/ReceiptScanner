@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -15,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,12 +27,14 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     private TextFragment textFragment;
     private FragmentCam cameraFragment;
+    private File directory;
 
     public static List<Bitmap> imageList;
 
     private static final int NUM_PAGES = 2;
     public static final int TEXT_PAGE = 1;
     public static final int CAM_PAGE = 0;
+    private static final String APP_DIRECTORY = "ReceiptScanner";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,8 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         super.onCreate(savedInstanceState);
 
         imageList = new ArrayList<>();
+
+        createDir();
 
         setContentView(R.layout.activity_main);
 
@@ -177,4 +183,13 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         fragmentTransaction.addToBackStack(fragment.toString());
         fragmentTransaction.commit();
     }
+
+    private void createDir() {
+        directory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                + File.separator + APP_DIRECTORY);
+        if(!directory.exists() && !directory.isDirectory()) {
+            directory.mkdirs();
+        }
+    }
+
 }
