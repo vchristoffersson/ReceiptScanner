@@ -55,6 +55,7 @@ public class Send {
             byte[] byteArray = stream.toByteArray();
 
             String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
+            String name = "IMG_" + timeStamp + ".png";
             File file = new File(mediaPath.getPath() + File.separator + "IMG_" + timeStamp + ".png");
 
             OutputStream outputStream = null;
@@ -79,7 +80,7 @@ public class Send {
 
             conn.disconnect();
 
-            return new MediaPath(file.getName() ,b);
+            return new MediaPath(file.getName() ,b, name);
 
         } catch (MalformedURLException e) {
             e.printStackTrace();

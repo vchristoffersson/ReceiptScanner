@@ -89,7 +89,7 @@ public class CustomListAdapter extends BaseAdapter {
             public void onClick(DialogInterface dialog, int which) {
                 String name = images.get(position);
                 images.remove(position);
-                MainActivity.imageList.remove(position);
+                MainActivity.imageMap.remove(name);
                 removeFile(name);
                 notifyDataSetChanged();
 

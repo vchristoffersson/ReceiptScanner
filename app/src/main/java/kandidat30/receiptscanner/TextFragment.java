@@ -88,7 +88,7 @@ public class TextFragment extends Fragment{
 
                 Fragment fr = new ImageFragment();
                 Bundle args = new Bundle();
-                args.putInt("pos", position);
+                args.putString("pos", images.get(position));
                 fr.setArguments(args);
                 FragmentChangeListener fc = (FragmentChangeListener) getActivity();
                 fc.replaceFragment(fr);
@@ -170,11 +170,13 @@ public class TextFragment extends Fragment{
 
             for (int i = 0; i < listFile.length; i++)
             {
-                files.add(listFile[i].getName());
+                String name = listFile[i].getName();
+
+                files.add(name);
 
                 Bitmap bitmap = BitmapFactory.decodeFile(listFile[i].getAbsolutePath(), options);
 
-                MainActivity.imageList.add(bitmap);
+                MainActivity.imageMap.put(name, bitmap);
             }
         }
 

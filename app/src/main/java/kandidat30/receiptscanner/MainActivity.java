@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.LruCache;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -29,7 +30,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
     private FragmentCam cameraFragment;
     private File directory;
 
-    public static List<Bitmap> imageList;
+    public static LruCache<String, Bitmap> imageMap;
 
     private static final int NUM_PAGES = 2;
     public static final int TEXT_PAGE = 1;
@@ -38,20 +39,11 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        /*
-        Log.d("opencv", "oncreate");
-        if (!OpenCVLoader.initDebug()) {
-            Log.e(this.getClass().getSimpleName(), "  OpenCVLoader.initDebug(), not working.");
-        } else {
-            Log.d(this.getClass().getSimpleName(), "  OpenCVLoader.initDebug(), working.");
-        }
-        Log.d("opencv", "after cv stuff");
-        */
 
+        int size = 70 * 1024 * 1024;
+        imageMap = new LruCache<>(size);
 
         super.onCreate(savedInstanceState);
-
-        imageList = new ArrayList<>();
 
         createDir();
 
@@ -137,7 +129,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     @Override
     public void onSend(byte[] data) {
-        new SendFilesTask().execute(new MediaPath(directory.getPath(), data));
+        new SendFilesTask().execute(new MediaPath(directory.getPath(), data, ""));
 
         Toast.makeText(this, "Video is being processed!", Toast.LENGTH_LONG).show();
     }
@@ -161,7 +153,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         protected void onPostExecute(Long result) {
 
             if(image != null) {
-                imageList.add(image.getImage());
+                imageMap.put(image.getName(), image.getImage());
 
                 textFragment.addImage(image.getPath());
                 textFragment.notifyAdapter();

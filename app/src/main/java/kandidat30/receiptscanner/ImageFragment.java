@@ -23,7 +23,7 @@ public class ImageFragment extends Fragment {
 
     private static final String ARG_PARAM1 = "pos";
 
-    private int pos;
+    private String name;
 
     private OnFragmentInteractionListener mListener;
 
@@ -50,7 +50,7 @@ public class ImageFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            pos = getArguments().getInt(ARG_PARAM1);
+            name = getArguments().getString(ARG_PARAM1);
         }
     }
 
@@ -59,7 +59,7 @@ public class ImageFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_image, container, false);
 
-        Bitmap bitmap = MainActivity.imageList.get(pos);
+        Bitmap bitmap = MainActivity.imageMap.get(name);
 
         ImageView imageView = (ImageView)view.findViewById(R.id.imageView);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
