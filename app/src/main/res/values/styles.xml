@@ -18,7 +18,7 @@
         <item name="windowNoTitle">true</item>
         <item name="android:statusBarColor">@color/color_lighter</item>
         <item name="colorPrimary">@android:color/background_light</item>
-        <item name="colorAccent">@color/colorWhite</item>
+        <item name="colorAccent">@color/colorPrimaryDark</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 

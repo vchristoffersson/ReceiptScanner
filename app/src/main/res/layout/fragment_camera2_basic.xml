@@ -53,4 +53,18 @@
         android:progress="0"
         android:progressDrawable="@drawable/circular" />
 
+    <ImageButton
+        android:id="@+id/imageButton"
+        android:layout_width="50dp"
+        android:scaleType="fitXY"
+        android:layout_height="50dp"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="25dp"
+        android:layout_marginBottom="25dp"
+        android:text="Delete"
+        android:layout_above="@+id/view"
+        android:src="@drawable/imgicon"
+        android:background="@null" />
+
 </RelativeLayout>

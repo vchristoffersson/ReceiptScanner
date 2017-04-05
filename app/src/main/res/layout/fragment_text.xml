@@ -44,6 +44,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
+        <View
+            android:id="@+id/view"
+            android:layout_width="wrap_content"
+            android:layout_height="65dp"
+            android:layout_alignParentBottom="true"
+            />
+
+        <Button
+            android:id="@+id/pictureButton"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@drawable/roundcam"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center"
+            android:translationZ="0dp"
+            android:layout_above="@id/view"
+            />
+
     </RelativeLayout>
 
 </android.support.v4.widget.SwipeRefreshLayout>

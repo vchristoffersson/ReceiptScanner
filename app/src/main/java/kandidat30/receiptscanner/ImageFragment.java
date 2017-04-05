@@ -1,49 +1,43 @@
 package kandidat30.receiptscanner;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.SyncStateContract;
 import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link ImageFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link ImageFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class ImageFragment extends Fragment {
+public class ImageFragment extends Fragment{
 
     private static final String ARG_PARAM1 = "pos";
 
     private String name;
     private OnFragmentInteractionListener mListener;
+
     private TextView ocrText;
+    private TextView swipeText;
+    private ProgressBar progressBar;
+
+    private Bitmap bitmap;
 
     public ImageFragment() {
-        // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @return A new instance of fragment ImageFragment.
-     */
     public static ImageFragment newInstance(String param1) {
         ImageFragment fragment = new ImageFragment();
         Bundle args = new Bundle();
@@ -65,7 +59,18 @@ public class ImageFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_image, container, false);
 
+        progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
+       // progressBar.getProgressDrawable().setColorFilter(Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
+
+        view.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event){
+                return gesture.onTouchEvent(event);
+            }
+        });
+
         ocrText = (TextView)view.findViewById(R.id.ocrView);
+        swipeText = (TextView)view.findViewById(R.id.slideText);
 
         TabHost tabHost = (TabHost)view.findViewById(R.id.tabHost);
         tabHost.setup();
@@ -89,7 +94,7 @@ public class ImageFragment extends Fragment {
             }
         });
 
-        final Bitmap bitmap = MainActivity.image;
+        bitmap = MainActivity.image;
 
         ImageView imageView = (ImageView)view.findViewById(R.id.imageView);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
@@ -99,9 +104,8 @@ public class ImageFragment extends Fragment {
         ocrButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //mCallback.onReceive(bitmap);
                 new ReceiveTextTask().execute(bitmap);
-                Toast.makeText(getContext(), "Image is being processed!", Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), "Image is being processed!", Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -136,16 +140,6 @@ public class ImageFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
@@ -175,13 +169,15 @@ public class ImageFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Long result) {
+            progressBar.setVisibility(View.INVISIBLE);
 
-            if(text != "") {
+            if(text != "" && text != "!") {
                 Toast.makeText(getContext(), "OCR process completed!", Toast.LENGTH_SHORT).show();
                 setOCRText(text);
             }
 
             else {
+                swipeText.setVisibility(View.VISIBLE);
                 Toast.makeText(getContext(), "OCR process failed!", Toast.LENGTH_SHORT).show();
             }
         }
@@ -196,4 +192,38 @@ public class ImageFragment extends Fragment {
         ocrText.setText(text);
     }
 
+    private final GestureDetector gesture = new GestureDetector(getActivity(),
+            new GestureDetector.SimpleOnGestureListener() {
+
+                @Override
+                public boolean onDown(MotionEvent e) {
+                    return true;
+                }
+
+                @Override
+                public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+
+                    final int SWIPE_MIN_DISTANCE = 220;
+                    final int SWIPE_MAX_OFF_PATH = 250;
+                    final int SWIPE_THRESHOLD_VELOCITY = 600;
+
+                    try {
+                        if (Math.abs(e1.getX() - e2.getX()) > SWIPE_MAX_OFF_PATH)
+                            return false;
+
+                        if (e1.getY() - e2.getY() < SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
+                            ocrText.setText("");
+                            swipeText.setVisibility(View.INVISIBLE);
+                            progressBar.setVisibility(View.VISIBLE);
+
+                            new ReceiveTextTask().execute(bitmap);
+                            Toast.makeText(getContext(), "Image is being processed!", Toast.LENGTH_LONG).show();
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return super.onFling(e1, e2, velocityX, velocityY);
+                }
+            });
 }

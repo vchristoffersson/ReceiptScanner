@@ -42,6 +42,7 @@ import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -52,6 +53,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
@@ -154,6 +156,7 @@ public class FragmentCam extends Fragment
     private OnSendListener mCallback;
     private ObjectAnimator animation;
 
+    private ImageButton imageButton;
 
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
@@ -343,6 +346,15 @@ public class FragmentCam extends Fragment
 
         View view = inflater.inflate(R.layout.fragment_camera2_basic, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
+
+        imageButton = (ImageButton)view.findViewById(R.id.imageButton);
+        imageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ViewPager mPager = (ViewPager) getActivity().findViewById(R.id.pager);
+                mPager.setCurrentItem(MainActivity.TEXT_PAGE);
+            }
+        });
 
         return view;
     }

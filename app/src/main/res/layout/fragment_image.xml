@@ -72,6 +72,7 @@
                     <Button
                         android:id="@+id/ocrButton"
                         android:text="Scan image"
+                        android:visibility="invisible"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerHorizontal="true"
@@ -80,6 +81,25 @@
                         android:layout_above="@id/buttonView"
                         android:background="@drawable/buttonshape"
                         android:textAllCaps="false" />
+
+                    <TextView
+                        android:id="@+id/slideText"
+                        android:text="Swipe down to scan image."
+                        android:textSize="26sp"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <ProgressBar
+                        android:id="@+id/progressBar"
+                        android:visibility="invisible"
+                        android:progressDrawable="@drawable/progress_bar"
+                        android:layout_width="200dp"
+                        android:layout_height="200dp"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:translationZ="4dp" />
 
                 </RelativeLayout>
 
