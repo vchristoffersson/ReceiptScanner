@@ -1,6 +1,7 @@
 package kandidat30.receiptscanner;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -50,7 +51,9 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -140,6 +143,8 @@ public class FragmentCam extends Fragment
     private String mCameraId;
 
     private TextureView mTextureView;
+    private ProgressBar progressBar;
+
     private CameraCaptureSession mCaptureSession;
     private CameraDevice mCameraDevice;
     private Size mPreviewSize;
@@ -334,7 +339,11 @@ public class FragmentCam extends Fragment
                              Bundle savedInstanceState) {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-        return inflater.inflate(R.layout.fragment_camera2_basic, container, false);
+
+        View view = inflater.inflate(R.layout.fragment_camera2_basic, container, false);
+        progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
+
+        return view;
     }
 
     @Override
@@ -860,6 +869,12 @@ public class FragmentCam extends Fragment
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+
+                            ObjectAnimator animation = ObjectAnimator.ofInt (progressBar, "progress", 0, 500); // see this max value coming back here, we animale towards that value
+                            animation.setDuration (5000); //in milliseconds
+                            animation.setInterpolator (new DecelerateInterpolator());
+                            animation.start ();
+
                             mediaRecorder.start();
                             Log.d(TAG, "After start");
                             /*
@@ -968,6 +983,10 @@ public class FragmentCam extends Fragment
             e.printStackTrace();
         }
         Log.d(TAG, "stop recording method");
+
+        progressBar.clearAnimation();
+        progressBar.setProgress(0);
+
         mediaRecorder.stop();
         mediaRecorder.reset();
 

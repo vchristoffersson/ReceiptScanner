@@ -32,12 +32,25 @@
 
     <Button
         android:id="@+id/picture"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:background="@drawable/roundcam"
         android:layout_centerHorizontal="true"
         android:layout_gravity="center"
+        android:translationZ="0dp"
         android:layout_above="@id/view"
         />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@id/view"
+        android:max="500"
+        android:translationZ="4dp"
+        android:progress="0"
+        android:progressDrawable="@drawable/circular" />
 
 </RelativeLayout>
