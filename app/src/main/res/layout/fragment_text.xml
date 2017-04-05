@@ -14,12 +14,22 @@
             android:layout_alignParentTop="true"
             android:layout_width="wrap_content"
             android:layout_height="55dp"
+            android:background="@color/colorTop"
             />
+
+        <TextView
+            android:text="Images"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:padding="17dp"
+            android:textSize="20sp"/>
 
         <ListView
             android:id="@+id/listView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@+id/top"
             />
 
         <TextView

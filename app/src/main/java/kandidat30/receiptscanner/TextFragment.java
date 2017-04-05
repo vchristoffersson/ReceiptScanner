@@ -191,14 +191,6 @@ public class TextFragment extends Fragment{
         images.add(name);
     }
 
-    private void removeFile(String name) {
-
-        String absolute = path + "/" + name;
-
-        File f = new File(absolute);
-        f.delete();
-    }
-
     public void hideEmptyText() {
         emptyView.setVisibility(View.INVISIBLE);
     }
