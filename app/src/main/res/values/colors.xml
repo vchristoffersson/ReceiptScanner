@@ -9,6 +9,6 @@
     <color name="colorYellow">#fbf721</color>
     <color name="colorRed">#e92754</color>
     <color name="colorPurple">#9854a1</color>
-    <color name="color_lighter">#99000000</color>
+    <color name="color_lighter">#b4000000</color>
     <color name="colorWhite">#ffffff</color>
 </resources>
