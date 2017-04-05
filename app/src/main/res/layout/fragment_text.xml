@@ -14,7 +14,7 @@
             android:layout_alignParentTop="true"
             android:layout_width="wrap_content"
             android:layout_height="75dp"
-            android:background="@color/colorTop"
+            android:background="@color/colorPrimary"
             />
 
         <TextView
