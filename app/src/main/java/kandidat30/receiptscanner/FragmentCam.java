@@ -540,6 +540,9 @@ public class FragmentCam extends Fragment
             e.printStackTrace();
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while trying to lock camera opening.", e);
+        } catch (SecurityException e) {
+            e.printStackTrace();
+            activity.finishAffinity();
         }
     }
 
