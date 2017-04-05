@@ -152,6 +152,7 @@ public class FragmentCam extends Fragment
     private Size mVideoSize;
     String videoPath;
     private OnSendListener mCallback;
+    private ObjectAnimator animation;
 
 
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
@@ -873,8 +874,8 @@ public class FragmentCam extends Fragment
                         @Override
                         public void run() {
 
-                            ObjectAnimator animation = ObjectAnimator.ofInt (progressBar, "progress", 0, 500); // see this max value coming back here, we animale towards that value
-                            animation.setDuration (5000); //in milliseconds
+                            animation = ObjectAnimator.ofInt (progressBar, "progress", 0, 700); // see this max value coming back here, we animale towards that value
+                            animation.setDuration (7000); //in milliseconds
                             animation.setInterpolator (new DecelerateInterpolator());
                             animation.start ();
 
@@ -975,6 +976,10 @@ public class FragmentCam extends Fragment
     private void stopRecording() {
         // UI
         // Stop recording
+        animation.end();
+        progressBar.clearAnimation();
+        progressBar.setProgress(0);
+
         if(!isHold) {
             return;
         }
@@ -986,9 +991,6 @@ public class FragmentCam extends Fragment
             e.printStackTrace();
         }
         Log.d(TAG, "stop recording method");
-
-        progressBar.clearAnimation();
-        progressBar.setProgress(0);
 
         mediaRecorder.stop();
         mediaRecorder.reset();

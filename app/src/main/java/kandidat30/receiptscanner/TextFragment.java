@@ -62,16 +62,13 @@ public class TextFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         final View view = inflater.inflate(R.layout.fragment_text, container, false);
-      //  ImageView imageView = (ImageView)view.findViewById(R.id.imageView);
-       // imageView.setImageBitmap(getLatestImage());
 
         images = getLatestImage();
-
         emptyView = (TextView)view.findViewById(R.id.empty);
 
-        if(images.isEmpty()) {
+  /*      if(images.isEmpty()) {
             showEmptyText();
-        }
+        }*/
 
         final SwipeDetector swipeDetector = new SwipeDetector();
 
@@ -83,12 +80,15 @@ public class TextFragment extends Fragment{
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+                String name = images.get(position);
+                MainActivity.image = getBitmap(name);
+
                 CustomViewPager mPager = (CustomViewPager) getActivity().findViewById(R.id.pager);
                 mPager.setPagingEnabled(false);
 
                 Fragment fr = new ImageFragment();
                 Bundle args = new Bundle();
-                args.putString("pos", images.get(position));
+                args.putString("pos", name);
                 fr.setArguments(args);
                 FragmentChangeListener fc = (FragmentChangeListener) getActivity();
                 fc.replaceFragment(fr);
@@ -151,6 +151,19 @@ public class TextFragment extends Fragment{
         mListener = null;
     }
 
+    private Bitmap getBitmap(String name) {
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+
+        String path = dir + File.separator + name;
+        File file = new File(path);
+
+        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+
+        return bitmap;
+    }
+
     private List<String> getLatestImage() {
 
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -162,7 +175,7 @@ public class TextFragment extends Fragment{
 
         File file = new File(dir);
 
-        path = dir + "/";
+        path = dir + File.separator;
 
         if (file.isDirectory())
         {
@@ -174,9 +187,9 @@ public class TextFragment extends Fragment{
 
                 files.add(name);
 
-                Bitmap bitmap = BitmapFactory.decodeFile(listFile[i].getAbsolutePath(), options);
+              //  Bitmap bitmap = BitmapFactory.decodeFile(listFile[i].getAbsolutePath(), options);
 
-                MainActivity.imageMap.put(name, bitmap);
+              //  MainActivity.imageMap.put(name, bitmap);
             }
         }
 

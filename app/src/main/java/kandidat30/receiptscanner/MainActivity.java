@@ -46,7 +46,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
     private TextFragment textFragment;
     private FragmentCam cameraFragment;
     private File directory;
-    public static LruCache<String, Bitmap> imageMap;
+    public static Bitmap image;
 
     private static final int REQUEST_PERMISSIONS = 100;
     private static final int NUM_PAGES = 2;
@@ -76,9 +76,6 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
     }
 
     private void initiateApp(){
-        int size = 70 * 1024 * 1024;
-        imageMap = new LruCache<>(size);
-
         createDir();
 
         mPager = (CustomViewPager) findViewById(R.id.pager);
@@ -184,8 +181,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         protected void onPostExecute(Long result) {
 
             if(image != null) {
-                imageMap.put(image.getName(), image.getImage());
-
+                //imageMap.put(image.getName(), image.getImage());
                 textFragment.addImage(image.getPath());
                 textFragment.notifyAdapter();
                 textFragment.hideEmptyText();

@@ -89,7 +89,7 @@ public class ImageFragment extends Fragment {
             }
         });
 
-        final Bitmap bitmap = MainActivity.imageMap.get(name);
+        final Bitmap bitmap = MainActivity.image;
 
         ImageView imageView = (ImageView)view.findViewById(R.id.imageView);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);

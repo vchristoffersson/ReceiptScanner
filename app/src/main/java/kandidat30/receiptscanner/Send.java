@@ -24,7 +24,7 @@ public class Send {
 
     private static final int TIMEOUT = 25000;
 
-    private static final String SERVER_IP = "http://192.168.43.54:3000/";
+    private static final String SERVER_IP = "http://192.168.1.7:3000/";
 
     public static MediaPath sendVideo(MediaPath mediaPath){
         try {
@@ -52,7 +52,7 @@ public class Send {
             Bitmap b = BitmapFactory.decodeStream(in);
 
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            b.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            b.compress(Bitmap.CompressFormat.JPEG, 100, stream);
             byte[] byteArray = stream.toByteArray();
 
             String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
@@ -112,7 +112,7 @@ public class Send {
             conn.setConnectTimeout(TIMEOUT);
 
             ByteArrayOutputStream blob = new ByteArrayOutputStream();
-            image.compress(Bitmap.CompressFormat.PNG, 30, blob);
+            image.compress(Bitmap.CompressFormat.JPEG, 30, blob);
             byte[] data = blob.toByteArray();
 
             OutputStream os = conn.getOutputStream();

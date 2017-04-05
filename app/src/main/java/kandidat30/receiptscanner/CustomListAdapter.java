@@ -81,7 +81,7 @@ public class CustomListAdapter extends BaseAdapter {
     }
 
     private void handleDialog(final int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.AlertDialogTheme);
         builder.setTitle("Are you sure?");
 
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -89,7 +89,7 @@ public class CustomListAdapter extends BaseAdapter {
             public void onClick(DialogInterface dialog, int which) {
                 String name = images.get(position);
                 images.remove(position);
-                MainActivity.imageMap.remove(name);
+                MainActivity.image = null;
                 removeFile(name);
                 notifyDataSetChanged();
 
