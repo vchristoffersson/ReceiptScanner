@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -92,10 +93,10 @@ public class Send {
     }
 
 
-    private static String getReceiptData(String image) {
+    public static String getReceiptData(Bitmap image) {
         try
         {
-            URL url = new URL(SERVER_IP + "login");
+            URL url = new URL(SERVER_IP + "scan");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
 
@@ -107,25 +108,30 @@ public class Send {
             conn.setRequestProperty("Content-Type", "multipart/form-data");
             //conn.setFixedLengthStreamingMode(1024);
 
-            conn.setReadTimeout(35000);
-            conn.setConnectTimeout(35000);
+            conn.setReadTimeout(TIMEOUT);
+            conn.setConnectTimeout(TIMEOUT);
 
-            // directly let .compress write binary image data
-            // to the output-stream
-            DataOutputStream ds = new DataOutputStream(conn.getOutputStream());
-            ds.writeBytes(image);
-            ds.flush();
-            ds.close();
+            ByteArrayOutputStream blob = new ByteArrayOutputStream();
+            image.compress(Bitmap.CompressFormat.PNG, 30, blob);
+            byte[] data = blob.toByteArray();
+
+            OutputStream os = conn.getOutputStream();
+            os.write(data);
+            os.flush();
+            os.close();
 
             System.out.println("Response Code: " + conn.getResponseCode());
 
             InputStream in = new BufferedInputStream(conn.getInputStream());
 
             BufferedReader responseStreamReader = new BufferedReader(new InputStreamReader(in));
+
             String line = "";
             StringBuilder stringBuilder = new StringBuilder();
+
             while ((line = responseStreamReader.readLine()) != null)
                 stringBuilder.append(line).append("\n");
+
             responseStreamReader.close();
 
             String response = stringBuilder.toString();
