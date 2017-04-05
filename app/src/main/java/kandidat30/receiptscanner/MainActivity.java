@@ -1,6 +1,9 @@
 package kandidat30.receiptscanner;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -8,6 +11,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.support.v13.app.FragmentCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -15,6 +20,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.Menu;
@@ -22,12 +28,14 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import java.io.File;
+import java.security.Permission;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends FragmentActivity implements FragmentCam.OnSendListener, TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener{
+public class MainActivity extends FragmentActivity implements FragmentCam.OnSendListener,
+        TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener{
 
     private CustomViewPager mPager;
     private PagerAdapter mPagerAdapter;
@@ -35,7 +43,6 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
     private TextFragment textFragment;
     private FragmentCam cameraFragment;
     private File directory;
-
     public static LruCache<String, Bitmap> imageMap;
 
     private static final int REQUEST_PERMISSIONS = 100;
@@ -47,38 +54,44 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        this.requestPermissions(new String[]{Manifest.permission.CAMERA,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSIONS);
-
-        int size = 70 * 1024 * 1024;
-        imageMap = new LruCache<>(size);
-
         super.onCreate(savedInstanceState);
-
-        createDir();
 
         setContentView(R.layout.activity_main);
 
+    }
 
-            mPager = (CustomViewPager) findViewById(R.id.pager);
-            mPagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
-            mPager.setAdapter(mPagerAdapter);
-            mPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+    @Override
+    protected void onStart() {
+        super.onStart();
+        this.requestPermissions(new String[]{Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSIONS);
+    }
 
-                @Override
-                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                }
+    private void initiateApp(){
+        int size = 70 * 1024 * 1024;
+        imageMap = new LruCache<>(size);
 
-                @Override
-                public void onPageSelected(int position) {
+        createDir();
 
-                }
+        mPager = (CustomViewPager) findViewById(R.id.pager);
+        mPagerAdapter = new ScreenSlidePagerAdapter(getSupportFragmentManager());
+        mPager.setAdapter(mPagerAdapter);
+        mPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
-                @Override
-                public void onPageScrollStateChanged(int state) {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
 
-                }
-            });
+            @Override
+            public void onPageSelected(int position) {
+
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
     }
 
     @Override
@@ -185,7 +198,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     @Override
     public void replaceFragment(Fragment fragment) {
-        FragmentManager fragmentManager = getSupportFragmentManager();;
+        FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.fragment_container, fragment);
         fragmentTransaction.addToBackStack(fragment.toString());
@@ -216,10 +229,10 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
             Log.d("PERMISSION", "All permissions was granted");
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            initiateApp();
         } else {
             Log.d("PERMISSION", "All permissions was not granted");
+            finishAffinity();
         }
     }
-
-
 }
