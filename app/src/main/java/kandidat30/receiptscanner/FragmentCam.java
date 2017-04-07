@@ -786,11 +786,25 @@ public class FragmentCam extends Fragment
             };
 
             mCaptureSession.stopRepeating();
-            mCaptureSession.capture(captureBuilder.build(), CaptureCallback, null);
+            if(true){
+                List<CaptureRequest> burst = new ArrayList<>();
+                captureBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, -2);
+                burst.add(captureBuilder.build());
+                captureBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, 0);
+                burst.add(captureBuilder.build());
+                captureBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, 2);
+                burst.add(captureBuilder.build());
+
+                mCaptureSession.setRepeatingBurst(burst, CaptureCallback, null);
+            } else {
+                mCaptureSession.capture(captureBuilder.build(), CaptureCallback, null);
+            }
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
     }
+
+
 
     private int getOrientation(int rotation) {
         return (ORIENTATIONS.get(rotation) + mSensorOrientation + 270) % 360;
