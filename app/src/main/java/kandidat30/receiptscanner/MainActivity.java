@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -31,14 +32,17 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.security.Permission;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends FragmentActivity implements FragmentCam.OnSendListener,
-        TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener{
+        TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener, FragmentCam.OnHDRListener{
 
     private CustomViewPager mPager;
     private PagerAdapter mPagerAdapter;
@@ -199,6 +203,40 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
         }
     }
+
+    @Override
+    public void onHDRSend(List<Bitmap> data) {
+        new SendHDRTask().execute(data);
+
+        Toast.makeText(this, "HDR is being processed!", Toast.LENGTH_LONG).show();
+    }
+
+    private class SendHDRTask extends AsyncTask<List<Bitmap>, Integer, Long> {
+
+        protected void onProgressUpdate(Integer... progress) {
+        }
+
+        @Override
+        protected Long doInBackground(List<Bitmap>... params) {
+            long totalSize = 0;
+            String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
+            Send.sendImage(directory, timeStamp, params[0]);
+
+            return totalSize;
+        }
+
+        @Override
+        protected void onPostExecute(Long result) {
+
+        }
+
+        @Override
+        protected void onPreExecute() {
+
+        }
+    }
+
+
 
     @Override
     public void replaceFragment(Fragment fragment) {

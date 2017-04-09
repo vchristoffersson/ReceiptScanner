@@ -2,6 +2,7 @@ package kandidat30.receiptscanner;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.util.Log;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -17,8 +18,10 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class Send {
 
@@ -147,5 +150,143 @@ public class Send {
             e.printStackTrace();
         }
         return "";
+    }
+
+    public static void sendImage(File dir, String path, List<Bitmap> data) {
+
+        for(int i = 0; i < data.size(); i++) {
+
+            try {
+                URL url = new URL(SERVER_IP + "upload-image");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
+
+                conn.setRequestProperty("Connection", "Keep-Alive");
+                conn.setRequestProperty("Cache-Control", "no-cache");
+                conn.setRequestProperty("Content-Type", "multipart/form-data");
+
+                conn.setReadTimeout(TIMEOUT);
+                conn.setConnectTimeout(TIMEOUT);
+
+                String message = "start" + path + "," + i;
+
+                Bitmap b = data.get(i);
+                ByteArrayOutputStream blob = new ByteArrayOutputStream();
+                b.compress(Bitmap.CompressFormat.JPEG, 30, blob);
+                byte[] bytes = blob.toByteArray();
+
+                OutputStream os = conn.getOutputStream();
+                OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+                osw.write(message);
+                os.write(bytes);
+                osw.flush();
+                osw.close();
+
+                os.flush();
+                os.close();
+
+                System.out.println("Response Code: " + conn.getResponseCode());
+
+                InputStream in = new BufferedInputStream(conn.getInputStream());
+                Log.d("sdfs", "sfsd");
+                BufferedReader responseStreamReader = new BufferedReader(new InputStreamReader(in));
+                String line = "";
+                StringBuilder stringBuilder = new StringBuilder();
+                while ((line = responseStreamReader.readLine()) != null)
+                    stringBuilder.append(line).append("\n");
+                responseStreamReader.close();
+
+                String response = stringBuilder.toString();
+                System.out.println(response);
+
+                conn.disconnect();
+                //CameraActivity.sentToList.add(receiver);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        getHDR(dir, path);
+    }
+
+    private static void getHDR(File dir, String path){
+        try {
+            URL url = new URL(SERVER_IP + "get-hdr");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+
+            conn.setRequestProperty("Connection", "Keep-Alive");
+            conn.setRequestProperty("Cache-Control", "no-cache");
+            conn.setRequestProperty("Content-Type", "multipart/form-data");
+
+            conn.setReadTimeout(TIMEOUT);
+            conn.setConnectTimeout(TIMEOUT);
+
+            DataOutputStream ds = new DataOutputStream(conn.getOutputStream());
+            ds.writeBytes(path);
+            ds.flush();
+            ds.close();
+
+            InputStream in = new BufferedInputStream(conn.getInputStream());
+            Bitmap b = BitmapFactory.decodeStream(in);
+
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            b.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            byte[] byteArray = stream.toByteArray();
+
+            String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
+            String name = "IMG_" + timeStamp + ".png";
+            File file = new File(dir + File.separator + "IMG_" + timeStamp + ".png");
+
+            writeFile(file, byteArray);
+
+            conn.disconnect();
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void writeFile(File file, byte[] data) {
+
+        OutputStream outputStream = null;
+
+        try {
+            outputStream = new FileOutputStream(file);
+            outputStream.write(data);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private static byte[] toPrimitives(Byte[] oBytes) {
+        byte[] bytes = new byte[oBytes.length];
+
+        for(int i = 0; i < oBytes.length; i++) {
+            bytes[i] = oBytes[i];
+        }
+
+        return bytes;
     }
 }

@@ -63,6 +63,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -87,6 +88,11 @@ public class FragmentCam extends Fragment
 
     private static final String ARG_PARAM1 = "dir";
     private String dir;
+
+    private final int imgWidth = 500;
+    private final int imgHeight = 1000;
+
+    private List<Bitmap> imageList;
 
     public static FragmentCam newInstance(String param1) {
         FragmentCam fragment = new FragmentCam();
@@ -154,6 +160,7 @@ public class FragmentCam extends Fragment
     private Size mVideoSize;
     String videoPath;
     private OnSendListener mCallback;
+    private OnHDRListener hdrCallback;
     private ObjectAnimator animation;
 
     private ImageButton imageButton;
@@ -203,12 +210,33 @@ public class FragmentCam extends Fragment
         @Override
         public void onImageAvailable(ImageReader reader) {
             Log.d(TAG, "onimageavailable()");
-
+            Bitmap bitmap;
             String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
             mFile = new File(dir + File.separator + "IMG_" + timeStamp + ".jpg");
             Image img = reader.acquireNextImage();
             if(img != null) {
-                mBackgroundHandler.post(new ImageSaver(img, mFile));
+
+                ByteBuffer buffer = img.getPlanes()[0].getBuffer();
+                byte[] bytes = new byte[buffer.capacity()];
+                buffer.get(bytes);
+
+                bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+               // bitmap = Bitmap.createScaledBitmap(b, b.getWidth() / 2, b.getHeight() / 2, false);
+
+                if(bitmap != null) {
+                    System.out.println("in here");
+                    imageList.add(bitmap);
+                }
+
+               // mBackgroundHandler.post(new ImageSaver(img, mFile));
+
+                if(imageList.size() == 3) {
+                    hdrCallback.onHDRSend(new ArrayList<>(imageList));
+                    imageList = new ArrayList<>();
+                }
+
+                img.close();
+
             } else {
                 Log.d(TAG, "img was null");
             }
@@ -343,6 +371,8 @@ public class FragmentCam extends Fragment
                              Bundle savedInstanceState) {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
+
+        imageList = new ArrayList<>();
 
         View view = inflater.inflate(R.layout.fragment_camera2_basic, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
@@ -1125,6 +1155,7 @@ public class FragmentCam extends Fragment
         super.onStart();
         try {
             mCallback = (OnSendListener) getActivity();
+            hdrCallback =(OnHDRListener) getActivity();
         } catch (ClassCastException e) {
             throw new ClassCastException(getActivity().toString()
                     + " must implement OnFragmentInteractionListener");
@@ -1136,5 +1167,7 @@ public class FragmentCam extends Fragment
         void onSend(byte[] data);
     }
 
-
+    public interface OnHDRListener {
+        void onHDRSend(List<Bitmap> data);
+    }
 }
