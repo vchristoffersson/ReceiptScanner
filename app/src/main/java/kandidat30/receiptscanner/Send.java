@@ -27,7 +27,7 @@ public class Send {
 
     private static final int TIMEOUT = 25000;
 
-    private static final String SERVER_IP = "http://192.168.1.7:3000/";
+    private static final String SERVER_IP = "http://192.168.43.129:3000/";
 
     public static MediaPath sendVideo(MediaPath mediaPath){
         try {
@@ -59,8 +59,8 @@ public class Send {
             byte[] byteArray = stream.toByteArray();
 
             String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
-            String name = "IMG_" + timeStamp + ".png";
-            File file = new File(mediaPath.getPath() + File.separator + "IMG_" + timeStamp + ".png");
+            String name = "IMG_" + timeStamp + ".jpg";
+            File file = new File(mediaPath.getPath() + File.separator + "IMG_" + timeStamp + ".jpg");
 
             OutputStream outputStream = null;
 
@@ -94,7 +94,6 @@ public class Send {
 
         return null;
     }
-
 
     public static String getReceiptData(Bitmap image) {
         try
@@ -152,7 +151,7 @@ public class Send {
         return "";
     }
 
-    public static void sendImage(File dir, String path, List<Bitmap> data) {
+    public static String sendImage(File dir, String path, List<Bitmap> data) {
 
         for(int i = 0; i < data.size(); i++) {
 
@@ -211,10 +210,10 @@ public class Send {
             }
         }
 
-        getHDR(dir, path);
+        return getHDR(dir, path);
     }
 
-    private static void getHDR(File dir, String path){
+    private static String getHDR(File dir, String path){
         try {
             URL url = new URL(SERVER_IP + "get-hdr");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -230,8 +229,11 @@ public class Send {
             conn.setReadTimeout(TIMEOUT);
             conn.setConnectTimeout(TIMEOUT);
 
+            String method = "mertens";
+            String message = path + "," + method;
+
             DataOutputStream ds = new DataOutputStream(conn.getOutputStream());
-            ds.writeBytes(path);
+            ds.writeBytes(message);
             ds.flush();
             ds.close();
 
@@ -243,18 +245,22 @@ public class Send {
             byte[] byteArray = stream.toByteArray();
 
             String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
-            String name = "IMG_" + timeStamp + ".png";
-            File file = new File(dir + File.separator + "IMG_" + timeStamp + ".png");
+            String name = "IMG_" + timeStamp + ".jpg";
+            File file = new File(dir + File.separator + name);
 
             writeFile(file, byteArray);
 
             conn.disconnect();
+
+            return name;
 
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return "";
     }
 
     private static void writeFile(File file, byte[] data) {

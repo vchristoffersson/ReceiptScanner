@@ -213,21 +213,26 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     private class SendHDRTask extends AsyncTask<List<Bitmap>, Integer, Long> {
 
+        private String hdrName;
+
         protected void onProgressUpdate(Integer... progress) {
         }
 
         @Override
         protected Long doInBackground(List<Bitmap>... params) {
             long totalSize = 0;
-            String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
-            Send.sendImage(directory, timeStamp, params[0]);
+            String name = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
+            hdrName = Send.sendImage(directory, name, params[0]);
 
             return totalSize;
         }
 
         @Override
         protected void onPostExecute(Long result) {
-
+                textFragment.addImage(hdrName);
+                textFragment.notifyAdapter();
+                textFragment.hideEmptyText();
+                Toast.makeText(getApplicationContext(), "HDR process completed!", Toast.LENGTH_SHORT).show();
         }
 
         @Override

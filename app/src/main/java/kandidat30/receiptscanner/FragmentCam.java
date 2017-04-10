@@ -161,7 +161,7 @@ public class FragmentCam extends Fragment
     private OnHDRListener hdrCallback;
     private ObjectAnimator animation;
 
-    private boolean isHDR;
+    private boolean isHDR = true;
 
     private ImageButton imageButton;
 
