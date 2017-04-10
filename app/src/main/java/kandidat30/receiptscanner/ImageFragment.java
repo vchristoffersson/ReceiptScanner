@@ -34,6 +34,7 @@ public class ImageFragment extends Fragment{
     private ProgressBar progressBar;
 
     private Bitmap bitmap;
+    private boolean isOCR = false;
 
     public ImageFragment() {
     }
@@ -90,7 +91,12 @@ public class ImageFragment extends Fragment{
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String tabId) {
-
+                if(tabId.equals("tag1")) {
+                    isOCR = false;
+                }
+                else if(tabId.equals("tag2")) {
+                    isOCR = true;
+                }
             }
         });
 
@@ -99,16 +105,6 @@ public class ImageFragment extends Fragment{
         ImageView imageView = (ImageView)view.findViewById(R.id.imageView);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
         imageView.setImageBitmap(bitmap);
-
-        Button ocrButton = (Button)view.findViewById(R.id.ocrButton);
-        ocrButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new ReceiveTextTask().execute(bitmap);
-                Toast.makeText(getContext(), "Image is being processed!", Toast.LENGTH_SHORT).show();
-
-            }
-        });
 
         return view;
     }
@@ -211,7 +207,7 @@ public class ImageFragment extends Fragment{
                         if (Math.abs(e1.getX() - e2.getX()) > SWIPE_MAX_OFF_PATH)
                             return false;
 
-                        if (e1.getY() - e2.getY() < SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
+                        if (e1.getY() - e2.getY() < SWIPE_MIN_DISTANCE && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY && isOCR) {
                             ocrText.setText("");
                             swipeText.setVisibility(View.INVISIBLE);
                             progressBar.setVisibility(View.VISIBLE);

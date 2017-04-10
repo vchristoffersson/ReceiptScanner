@@ -52,7 +52,7 @@
             />
 
         <Button
-            android:id="@+id/pictureButton"
+            android:id="@+id/camViewButton"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:background="@drawable/roundcam"

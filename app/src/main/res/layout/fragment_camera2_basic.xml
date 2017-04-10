@@ -41,6 +41,17 @@
         android:layout_above="@id/view"
         />
 
+    <View
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:background="@drawable/roundfill"
+        android:id="@+id/button_record"
+        android:layout_gravity="center"
+        android:layout_marginBottom="17dp"
+        android:visibility="invisible"
+        android:layout_above="@id/view"
+        android:layout_centerHorizontal="true"/>
+
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleHorizontal"
@@ -62,9 +73,37 @@
         android:layout_centerVertical="true"
         android:layout_marginRight="25dp"
         android:layout_marginBottom="25dp"
-        android:text="Delete"
         android:layout_above="@+id/view"
         android:src="@drawable/imgicon"
+        android:background="@null" />
+
+    <ImageButton
+        android:id="@+id/hdr_on_Button"
+        android:scaleType="fitXY"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_above="@+id/view"
+        android:layout_marginLeft="25dp"
+        android:layout_marginBottom="85dp"
+        android:layout_alignParentBottom="true"
+        android:src="@drawable/hdr_on"
+        android:background="@null" />
+
+    <ImageButton
+        android:id="@+id/hdr_off_Button"
+        android:scaleType="fitXY"
+        android:visibility="invisible"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_above="@+id/view"
+        android:layout_marginLeft="25dp"
+        android:layout_marginBottom="85dp"
+        android:layout_alignParentBottom="true"
+        android:src="@drawable/hdr_off"
         android:background="@null" />
 
 </RelativeLayout>

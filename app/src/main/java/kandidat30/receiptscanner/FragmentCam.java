@@ -53,6 +53,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -88,9 +89,6 @@ public class FragmentCam extends Fragment
 
     private static final String ARG_PARAM1 = "dir";
     private String dir;
-
-    private final int imgWidth = 500;
-    private final int imgHeight = 1000;
 
     private List<Bitmap> imageList;
 
@@ -163,6 +161,8 @@ public class FragmentCam extends Fragment
     private OnHDRListener hdrCallback;
     private ObjectAnimator animation;
 
+    private boolean isHDR;
+
     private ImageButton imageButton;
 
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
@@ -223,12 +223,14 @@ public class FragmentCam extends Fragment
                 bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                // bitmap = Bitmap.createScaledBitmap(b, b.getWidth() / 2, b.getHeight() / 2, false);
 
-                if(bitmap != null) {
+                if(bitmap != null && isHDR) {
                     System.out.println("in here");
                     imageList.add(bitmap);
                 }
 
-               // mBackgroundHandler.post(new ImageSaver(img, mFile));
+                else if(!isHDR) {
+                    mBackgroundHandler.post(new ImageSaver(img, mFile));
+                }
 
                 if(imageList.size() == 3) {
                     hdrCallback.onHDRSend(new ArrayList<>(imageList));
@@ -366,6 +368,10 @@ public class FragmentCam extends Fragment
         }
     }
 
+    private ImageButton hdr_on_button;
+    private ImageButton hdr_off_button;
+    private View recordButton;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -385,6 +391,28 @@ public class FragmentCam extends Fragment
                 mPager.setCurrentItem(MainActivity.TEXT_PAGE);
             }
         });
+
+        hdr_on_button = (ImageButton)view.findViewById(R.id.hdr_on_Button);
+        hdr_on_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hdr_on_button.setVisibility(View.INVISIBLE);
+                hdr_off_button.setVisibility(View.VISIBLE);
+                isHDR = false;
+            }
+        });
+
+        hdr_off_button = (ImageButton)view.findViewById(R.id.hdr_off_Button);
+        hdr_off_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hdr_on_button.setVisibility(View.VISIBLE);
+                hdr_off_button.setVisibility(View.INVISIBLE);
+                isHDR = true;
+            }
+        });
+
+        recordButton = (View)view.findViewById(R.id.button_record);
 
         return view;
     }
@@ -816,7 +844,7 @@ public class FragmentCam extends Fragment
             };
 
             mCaptureSession.stopRepeating();
-            if(true){
+            if(isHDR){
                 List<CaptureRequest> burst = new ArrayList<>();
                 captureBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, -2);
                 burst.add(captureBuilder.build());
@@ -935,6 +963,8 @@ public class FragmentCam extends Fragment
                             animation.setInterpolator (new DecelerateInterpolator());
                             animation.start ();
 
+                            recordButton.setVisibility(View.VISIBLE);
+
                             mediaRecorder.start();
                             Log.d(TAG, "After start");
                             /*
@@ -1035,6 +1065,7 @@ public class FragmentCam extends Fragment
         animation.end();
         progressBar.clearAnimation();
         progressBar.setProgress(0);
+        recordButton.setVisibility(View.INVISIBLE);
 
         if(!isHold) {
             return;
