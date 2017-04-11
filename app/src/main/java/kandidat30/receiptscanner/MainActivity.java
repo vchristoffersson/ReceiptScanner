@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
 import android.support.v4.app.DialogFragment;
@@ -27,8 +28,10 @@ import android.util.Log;
 import android.util.LruCache;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.File;
@@ -46,9 +49,12 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     private CustomViewPager mPager;
     private PagerAdapter mPagerAdapter;
-
     private TextFragment textFragment;
     private FragmentCam cameraFragment;
+    private ProgressBar progressBar;
+
+    private Handler progressHandler;
+
     private File directory;
     public static Bitmap image;
 
@@ -70,6 +76,8 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
             w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         }
 
+        progressBar = (ProgressBar)findViewById(R.id.scanBar);
+        progressHandler = new Handler();
     }
 
     @Override
@@ -162,7 +170,6 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
     @Override
     public void onSend(byte[] data) {
         new SendFilesTask().execute(new MediaPath(directory.getPath(), data, ""));
-
         Toast.makeText(this, "Video is being processed!", Toast.LENGTH_LONG).show();
     }
 
@@ -171,6 +178,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         private MediaPath image;
 
         protected void onProgressUpdate(Integer... progress) {
+
         }
 
         @Override
@@ -185,7 +193,6 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         protected void onPostExecute(Long result) {
 
             if(image != null) {
-                //imageMap.put(image.getName(), image.getImage());
                 textFragment.addImage(image.getPath());
                 textFragment.notifyAdapter();
                 textFragment.hideEmptyText();
@@ -196,18 +203,24 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
             else {
                 Toast.makeText(getApplicationContext(), "Video process failed!", Toast.LENGTH_SHORT).show();
             }
+
+            progressBar.setVisibility(View.INVISIBLE);
         }
 
         @Override
         protected void onPreExecute() {
-
+            progressHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    progressBar.setVisibility(View.VISIBLE);
+                }
+            });
         }
     }
 
     @Override
     public void onHDRSend(List<Bitmap> data) {
         new SendHDRTask().execute(data);
-
         Toast.makeText(this, "HDR is being processed!", Toast.LENGTH_LONG).show();
     }
 
@@ -216,6 +229,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         private String hdrName;
 
         protected void onProgressUpdate(Integer... progress) {
+
         }
 
         @Override
@@ -229,15 +243,22 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
         @Override
         protected void onPostExecute(Long result) {
-                textFragment.addImage(hdrName);
-                textFragment.notifyAdapter();
-                textFragment.hideEmptyText();
-                Toast.makeText(getApplicationContext(), "HDR process completed!", Toast.LENGTH_SHORT).show();
+            textFragment.addImage(hdrName);
+            textFragment.notifyAdapter();
+            textFragment.hideEmptyText();
+
+            progressBar.setVisibility(View.INVISIBLE);
+            Toast.makeText(getApplicationContext(), "HDR process completed!", Toast.LENGTH_SHORT).show();
         }
 
         @Override
         protected void onPreExecute() {
-
+            progressHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    progressBar.setVisibility(View.VISIBLE);
+                }
+            });
         }
     }
 

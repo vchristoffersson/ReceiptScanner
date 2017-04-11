@@ -26,8 +26,7 @@ import java.util.List;
 public class Send {
 
     private static final int TIMEOUT = 25000;
-
-    private static final String SERVER_IP = "http://192.168.43.129:3000/";
+    private static final String SERVER_IP = "http://192.168.1.7:3000/";
 
     public static MediaPath sendVideo(MediaPath mediaPath){
         try {
@@ -62,25 +61,7 @@ public class Send {
             String name = "IMG_" + timeStamp + ".jpg";
             File file = new File(mediaPath.getPath() + File.separator + "IMG_" + timeStamp + ".jpg");
 
-            OutputStream outputStream = null;
-
-            try {
-                outputStream = new FileOutputStream(file);
-                outputStream.write(byteArray);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            } finally {
-                if (outputStream != null) {
-                    try {
-                        outputStream.close();
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+            writeFile(file, byteArray);
 
             conn.disconnect();
 
@@ -108,7 +89,6 @@ public class Send {
             conn.setRequestProperty("Connection", "Keep-Alive");
             conn.setRequestProperty("Cache-Control", "no-cache");
             conn.setRequestProperty("Content-Type", "multipart/form-data");
-            //conn.setFixedLengthStreamingMode(1024);
 
             conn.setReadTimeout(TIMEOUT);
             conn.setConnectTimeout(TIMEOUT);
@@ -122,13 +102,10 @@ public class Send {
             os.flush();
             os.close();
 
-            System.out.println("Response Code: " + conn.getResponseCode());
-
             InputStream in = new BufferedInputStream(conn.getInputStream());
-
             BufferedReader responseStreamReader = new BufferedReader(new InputStreamReader(in));
 
-            String line = "";
+            String line;
             StringBuilder stringBuilder = new StringBuilder();
 
             while ((line = responseStreamReader.readLine()) != null)
@@ -187,22 +164,22 @@ public class Send {
                 os.flush();
                 os.close();
 
-                System.out.println("Response Code: " + conn.getResponseCode());
-
                 InputStream in = new BufferedInputStream(conn.getInputStream());
-                Log.d("sdfs", "sfsd");
+
                 BufferedReader responseStreamReader = new BufferedReader(new InputStreamReader(in));
-                String line = "";
+                String line;
                 StringBuilder stringBuilder = new StringBuilder();
+
                 while ((line = responseStreamReader.readLine()) != null)
                     stringBuilder.append(line).append("\n");
+
                 responseStreamReader.close();
 
                 String response = stringBuilder.toString();
                 System.out.println(response);
 
                 conn.disconnect();
-                //CameraActivity.sentToList.add(receiver);
+
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
