@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -26,12 +27,6 @@ public class TextFragment extends Fragment{
     private OnFragmentInteractionListener mListener;
     private static final String ARG_PARAM1 = "dir";
     private String dir;
-
-    private SwipeRefreshLayout refreshLayout;
-    private CustomListAdapter adapter;
-    private ListView listView;
-    private TextView emptyView;
-    private Button camviewButton;
 
     private List<String> images;
     private String path;
@@ -60,6 +55,13 @@ public class TextFragment extends Fragment{
             dir = getArguments().getString(ARG_PARAM1);
         }
     }
+
+    private SwipeRefreshLayout refreshLayout;
+    private CustomListAdapter adapter;
+    private ListView listView;
+    private TextView emptyView;
+    private Button camviewButton;
+    private ImageButton settingsButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -133,6 +135,19 @@ public class TextFragment extends Fragment{
                         (listView == null || listView.getChildCount() == 0) ?
                                 0 : listView.getChildAt(0).getTop();
                 refreshLayout.setEnabled(firstVisibleItem == 0 && topRowVerticalPosition >= 0);
+            }
+        });
+
+        settingsButton = (ImageButton)view.findViewById(R.id.settings_button);
+        settingsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CustomViewPager mPager = (CustomViewPager) getActivity().findViewById(R.id.pager);
+                mPager.setPagingEnabled(false);
+
+                Fragment fr = new SettingsFragment();
+                FragmentChangeListener fc = (FragmentChangeListener) getActivity();
+                fc.replaceFragment(fr);
             }
         });
 

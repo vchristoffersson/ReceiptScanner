@@ -148,23 +148,6 @@ public class FragmentCam extends Fragment
     };
     private String mCameraId;
 
-    private TextureView mTextureView;
-    private ProgressBar progressBar;
-
-    private CameraCaptureSession mCaptureSession;
-    private CameraDevice mCameraDevice;
-    private Size mPreviewSize;
-    private boolean isHold = false;
-    private Size mVideoSize;
-    String videoPath;
-    private OnSendListener mCallback;
-    private OnHDRListener hdrCallback;
-    private ObjectAnimator animation;
-
-    private boolean isHDR = true;
-
-    private ImageButton imageButton;
-
     private final CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
 
         @Override
@@ -203,6 +186,7 @@ public class FragmentCam extends Fragment
     private Handler mBackgroundHandler;
     private ImageReader mImageReader;
     private File mFile;
+    private List<Byte[]> buffList;
 
     private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
             = new ImageReader.OnImageAvailableListener() {
@@ -220,21 +204,25 @@ public class FragmentCam extends Fragment
                 byte[] bytes = new byte[buffer.capacity()];
                 buffer.get(bytes);
 
-                bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                if(isHDR)
+                    buffList.add(Send.toObjects(bytes));
+
+                //bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                // bitmap = Bitmap.createScaledBitmap(b, b.getWidth() / 2, b.getHeight() / 2, false);
 
-                if(bitmap != null && isHDR) {
+                /*if(bitmap != null && isHDR) {
                     System.out.println("in here");
                     imageList.add(bitmap);
-                }
+                }*/
 
-                else if(!isHDR) {
+                else {
                     mBackgroundHandler.post(new ImageSaver(img, mFile));
                 }
 
-                if(imageList.size() == 3) {
-                    hdrCallback.onHDRSend(new ArrayList<>(imageList));
+                if(buffList.size() == 3) {
+                    hdrCallback.onHDRSend(new ArrayList<>(buffList));
                     imageList = new ArrayList<>();
+                    buffList = new ArrayList<>();
                 }
 
                 img.close();
@@ -371,6 +359,21 @@ public class FragmentCam extends Fragment
     private ImageButton hdr_on_button;
     private ImageButton hdr_off_button;
     private View recordButton;
+    private TextureView mTextureView;
+    private ProgressBar progressBar;
+    private ImageButton imageButton;
+
+    private CameraCaptureSession mCaptureSession;
+    private CameraDevice mCameraDevice;
+    private Size mPreviewSize;
+    private boolean isHold = false;
+    private Size mVideoSize;
+    String videoPath;
+    private OnSendListener mCallback;
+    private OnHDRListener hdrCallback;
+    private ObjectAnimator animation;
+
+    private boolean isHDR = true;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -379,6 +382,7 @@ public class FragmentCam extends Fragment
         StrictMode.setThreadPolicy(policy);
 
         imageList = new ArrayList<>();
+        buffList = new ArrayList<>();
 
         View view = inflater.inflate(R.layout.fragment_camera2_basic, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
@@ -415,6 +419,11 @@ public class FragmentCam extends Fragment
         recordButton = (View)view.findViewById(R.id.button_record);
 
         return view;
+    }
+
+    public interface FragmentChangeListener
+    {
+        void replaceFragment(Fragment fragment);
     }
 
     @Override
@@ -706,6 +715,7 @@ public class FragmentCam extends Fragment
                                 mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                                         CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                                 // Flash is automatically enabled when necessary.
+                             //   mPreviewRequestBuilder.set(CaptureRequest.JPEG_QUALITY, (byte) 20);
                                 setAutoFlash(mPreviewRequestBuilder);
 
                                 // Finally, we start displaying the camera preview.
@@ -1199,6 +1209,6 @@ public class FragmentCam extends Fragment
     }
 
     public interface OnHDRListener {
-        void onHDRSend(List<Bitmap> data);
+        void onHDRSend(List<Byte[]> data);
     }
 }

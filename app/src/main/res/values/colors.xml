@@ -11,4 +11,5 @@
     <color name="colorPurple">#9854a1</color>
     <color name="color_lighter">#b4000000</color>
     <color name="colorWhite">#ffffff</color>
+    <color name="colorLightGrey">#E0E0E0</color>
 </resources>

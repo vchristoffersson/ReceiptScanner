@@ -22,7 +22,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@android:color/white"
-            android:padding="40dp"
+            android:paddingTop="40dp"
+            android:paddingLeft="25dp"
             android:textSize="20sp"/>
 
         <ListView
@@ -61,6 +62,17 @@
             android:translationZ="0dp"
             android:layout_above="@id/view"
             />
+
+        <ImageButton
+            android:id="@+id/settings_button"
+            android:scaleType="fitXY"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="15dp"
+            android:layout_marginTop="30dp"
+            android:src="@drawable/settings"
+            android:background="@null" />
 
     </RelativeLayout>
 

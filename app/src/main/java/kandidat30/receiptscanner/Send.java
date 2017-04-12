@@ -20,12 +20,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class Send {
 
-    private static final int TIMEOUT = 25000;
+    private static final int TIMEOUT = 65000;
     private static final String SERVER_IP = "http://192.168.1.7:3000/";
 
     public static MediaPath sendVideo(MediaPath mediaPath){
@@ -128,7 +129,7 @@ public class Send {
         return "";
     }
 
-    public static String sendImage(File dir, String path, List<Bitmap> data) {
+    public static List<String> sendImage(File dir, String path, List<Byte[]> data, List<String> algorithms) {
 
         for(int i = 0; i < data.size(); i++) {
 
@@ -149,10 +150,14 @@ public class Send {
 
                 String message = "start" + path + "," + i;
 
-                Bitmap b = data.get(i);
+               /* Bitmap b = data.get(i);
                 ByteArrayOutputStream blob = new ByteArrayOutputStream();
                 b.compress(Bitmap.CompressFormat.JPEG, 30, blob);
-                byte[] bytes = blob.toByteArray();
+                byte[] bytes = blob.toByteArray();*/
+
+                Byte[] buffer = data.get(i);
+
+                byte[] bytes = toPrimitives(buffer);
 
                 OutputStream os = conn.getOutputStream();
                 OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
@@ -187,10 +192,16 @@ public class Send {
             }
         }
 
-        return getHDR(dir, path);
+        List<String> names = new ArrayList<>();
+        for(String s : algorithms) {
+            String fileName = getHDR(dir, path, s);
+            names.add(fileName);
+        }
+
+        return names;
     }
 
-    private static String getHDR(File dir, String path){
+    private static String getHDR(File dir, String path, String method){
         try {
             URL url = new URL(SERVER_IP + "get-hdr");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -206,7 +217,6 @@ public class Send {
             conn.setReadTimeout(TIMEOUT);
             conn.setConnectTimeout(TIMEOUT);
 
-            String method = "mertens";
             String message = path + "," + method;
 
             DataOutputStream ds = new DataOutputStream(conn.getOutputStream());
@@ -222,7 +232,7 @@ public class Send {
             byte[] byteArray = stream.toByteArray();
 
             String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
-            String name = "IMG_" + timeStamp + ".jpg";
+            String name = "IMG_" + timeStamp + "_" + method + ".jpg";
             File file = new File(dir + File.separator + name);
 
             writeFile(file, byteArray);
@@ -263,12 +273,21 @@ public class Send {
         }
     }
 
-    private static byte[] toPrimitives(Byte[] oBytes) {
+    public static byte[] toPrimitives(Byte[] oBytes) {
         byte[] bytes = new byte[oBytes.length];
 
         for(int i = 0; i < oBytes.length; i++) {
             bytes[i] = oBytes[i];
         }
+
+        return bytes;
+    }
+
+    public static Byte[] toObjects(byte[] bytesPrim) {
+        Byte[] bytes = new Byte[bytesPrim.length];
+
+        int i = 0;
+        for (byte b : bytesPrim) bytes[i++] = b; // Autoboxing
 
         return bytes;
     }

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.media.Image;
@@ -24,6 +25,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.Menu;
@@ -39,13 +41,14 @@ import java.nio.ByteBuffer;
 import java.security.Permission;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends FragmentActivity implements FragmentCam.OnSendListener,
-        TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener, FragmentCam.OnHDRListener{
+        TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener, FragmentCam.OnHDRListener, FragmentCam.FragmentChangeListener{
 
     private CustomViewPager mPager;
     private PagerAdapter mPagerAdapter;
@@ -57,12 +60,17 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
 
     private File directory;
     public static Bitmap image;
+    private List<String> hdrAlgorithms;
 
     private static final int REQUEST_PERMISSIONS = 100;
     private static final int NUM_PAGES = 2;
     public static final int TEXT_PAGE = 1;
     public static final int CAM_PAGE = 0;
     private static final String APP_DIRECTORY = "ReceiptScanner";
+
+    private final String DEBEVEC = "debevec";
+    private final String MERTENS = "mertens";
+    private final String ROBERTSON = "robertson";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -218,32 +226,54 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         }
     }
 
+    private void loadHDRSettings() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        boolean debevec = prefs.getBoolean("debevec", true);
+        boolean robertson = prefs.getBoolean("robertson", true);
+
+        hdrAlgorithms = new ArrayList<>();
+        hdrAlgorithms.add(MERTENS);
+
+        if(debevec) {
+            hdrAlgorithms.add(DEBEVEC);
+        }
+        if(robertson) {
+            hdrAlgorithms.add(ROBERTSON);
+        }
+    }
+
     @Override
-    public void onHDRSend(List<Bitmap> data) {
+    public void onHDRSend(List<Byte[]> data) {
+        loadHDRSettings();
+
         new SendHDRTask().execute(data);
         Toast.makeText(this, "HDR is being processed!", Toast.LENGTH_LONG).show();
     }
 
-    private class SendHDRTask extends AsyncTask<List<Bitmap>, Integer, Long> {
+    private class SendHDRTask extends AsyncTask<List<Byte[]>, Integer, Long> {
 
-        private String hdrName;
+        private List<String> hdrNames;
 
         protected void onProgressUpdate(Integer... progress) {
 
         }
 
         @Override
-        protected Long doInBackground(List<Bitmap>... params) {
+        protected Long doInBackground(List<Byte[]>... params) {
             long totalSize = 0;
             String name = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
-            hdrName = Send.sendImage(directory, name, params[0]);
+            hdrNames = Send.sendImage(directory, name, params[0], hdrAlgorithms);
 
             return totalSize;
         }
 
         @Override
         protected void onPostExecute(Long result) {
-            textFragment.addImage(hdrName);
+            for(String s : hdrNames) {
+                if(s != "")
+                    textFragment.addImage(s);
+            }
+
             textFragment.notifyAdapter();
             textFragment.hideEmptyText();
 
