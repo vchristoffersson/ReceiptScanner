@@ -21,4 +21,12 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
         return view;
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        CustomViewPager mPager = (CustomViewPager) getActivity().findViewById(R.id.pager);
+        mPager.setPagingEnabled(true);
+    }
 }
