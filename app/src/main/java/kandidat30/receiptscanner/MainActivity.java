@@ -36,13 +36,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MainActivity extends FragmentActivity implements FragmentCam.OnSendListener,
-        TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener, FragmentCam.OnHDRListener, FragmentCam.FragmentChangeListener{
+public class MainActivity extends FragmentActivity implements CameraFragment.OnSendListener,
+        TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener, CameraFragment.OnHDRListener, CameraFragment.FragmentChangeListener{
 
     private CustomViewPager mPager;
     private PagerAdapter mPagerAdapter;
     private TextFragment textFragment;
-    private FragmentCam cameraFragment;
+    private CameraFragment cameraFragment;
     private ProgressBar progressBar;
 
     private Handler progressHandler;
@@ -143,7 +143,7 @@ public class MainActivity extends FragmentActivity implements FragmentCam.OnSend
         @Override
         public Fragment getItem(int position) {
             if(position == CAM_PAGE) {
-                cameraFragment = new FragmentCam();
+                cameraFragment = new CameraFragment();
                 Bundle args = new Bundle();
                 args.putString("dir", directory.getPath());
                 cameraFragment.setArguments(args);
