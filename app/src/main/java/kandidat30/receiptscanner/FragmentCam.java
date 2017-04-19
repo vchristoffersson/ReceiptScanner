@@ -201,13 +201,19 @@ public class FragmentCam extends Fragment
             Image img = reader.acquireNextImage();
             if(img != null) {
 
-                ByteBuffer buffer = img.getPlanes()[0].getBuffer();
-                byte[] bytes = new byte[buffer.capacity()];
-                buffer.get(bytes);
-
-                if(isHDR)
+                if(isHDR) {
+                    ByteBuffer buffer = img.getPlanes()[0].getBuffer();
+                    byte[] bytes = new byte[buffer.capacity()];
+                    buffer.get(bytes);
                     buffList.add(Send.toObjects(bytes));
+                    if(buffList.size() == 3) {
+                        hdrCallback.onHDRSend(new ArrayList<>(buffList));
+                        imageList = new ArrayList<>();
+                        buffList = new ArrayList<>();
+                    }
 
+                    img.close();
+                }
                 //bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                // bitmap = Bitmap.createScaledBitmap(b, b.getWidth() / 2, b.getHeight() / 2, false);
 
@@ -219,14 +225,6 @@ public class FragmentCam extends Fragment
                 else {
                     mBackgroundHandler.post(new ImageSaver(img, mFile));
                 }
-
-                if(buffList.size() == 3) {
-                    hdrCallback.onHDRSend(new ArrayList<>(buffList));
-                    imageList = new ArrayList<>();
-                    buffList = new ArrayList<>();
-                }
-
-                img.close();
 
             } else {
                 Log.d(TAG, "img was null");
