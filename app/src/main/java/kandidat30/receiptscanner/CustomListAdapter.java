@@ -9,13 +9,11 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
 public class CustomListAdapter extends BaseAdapter {
     private final List<String> images;
