@@ -4,7 +4,6 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -32,7 +31,6 @@ import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -62,8 +60,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 
-public class FragmentCam extends Fragment
-        implements View.OnClickListener, View.OnTouchListener,
+public class CameraFragment extends Fragment implements View.OnTouchListener,
         FragmentCompat.OnRequestPermissionsResultCallback {
 
     private static final int SENSOR_ORIENTATION_DEFAULT_DEGREES = 90;
@@ -75,10 +72,8 @@ public class FragmentCam extends Fragment
     private static final String ARG_PARAM1 = "dir";
     private String dir;
 
-    private List<Bitmap> imageList;
-
-    public static FragmentCam newInstance(String param1) {
-        FragmentCam fragment = new FragmentCam();
+    public static CameraFragment newInstance(String param1) {
+        CameraFragment fragment = new CameraFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         fragment.setArguments(args);
@@ -99,7 +94,6 @@ public class FragmentCam extends Fragment
         INVERSE_ORIENTATIONS.append(Surface.ROTATION_270, 0);
     }
 
-    private static final String TAG = "ReceiptScanner";
     private static final int STATE_PREVIEW = 0;
     private static final int STATE_WAITING_LOCK = 1;
     private static final int STATE_WAITING_PRECAPTURE = 2;
@@ -137,7 +131,6 @@ public class FragmentCam extends Fragment
 
         @Override
         public void onOpened(@NonNull CameraDevice cameraDevice) {
-            // This method is called when the camera is opened.  We start camera preview here.
             mCameraOpenCloseLock.release();
             mCameraDevice = cameraDevice;
             createCameraPreviewSession();
@@ -163,9 +156,6 @@ public class FragmentCam extends Fragment
 
     };
 
-    /**
-     * An additional thread for running tasks that shouldn't block the UI.
-     */
     private HandlerThread mBackgroundThread;
 
     private Handler mBackgroundHandler;
@@ -178,8 +168,6 @@ public class FragmentCam extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            Log.d(TAG, "onimageavailable()");
-            Bitmap bitmap;
             String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
             mFile = new File(dir + File.separator + "IMG_" + timeStamp + ".jpg");
             Image img = reader.acquireNextImage();
@@ -192,26 +180,15 @@ public class FragmentCam extends Fragment
                     buffList.add(Send.toObjects(bytes));
                     if(buffList.size() == 3) {
                         hdrCallback.onHDRSend(new ArrayList<>(buffList));
-                        imageList = new ArrayList<>();
                         buffList = new ArrayList<>();
                     }
 
                     img.close();
                 }
-                //bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-               // bitmap = Bitmap.createScaledBitmap(b, b.getWidth() / 2, b.getHeight() / 2, false);
-
-                /*if(bitmap != null && isHDR) {
-                    System.out.println("in here");
-                    imageList.add(bitmap);
-                }*/
 
                 else {
                     mBackgroundHandler.post(new ImageSaver(img, mFile));
                 }
-
-            } else {
-                Log.d(TAG, "img was null");
             }
         }
 
@@ -235,7 +212,7 @@ public class FragmentCam extends Fragment
         private void process(CaptureResult result) {
             switch (mState) {
                 case STATE_PREVIEW: {
-                    // We have nothing to do when the camera preview is working normally.
+
                     break;
                 }
                 case STATE_WAITING_LOCK: {
@@ -244,7 +221,7 @@ public class FragmentCam extends Fragment
                         captureStillPicture();
                     } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState ||
                             CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState) {
-                        // CONTROL_AE_STATE can be null on some devices
+
                         Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                         if (aeState == null ||
                                 aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
@@ -257,7 +234,7 @@ public class FragmentCam extends Fragment
                     break;
                 }
                 case STATE_WAITING_PRECAPTURE: {
-                    // CONTROL_AE_STATE can be null on some devices
+
                     Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                     if (aeState == null ||
                             aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
@@ -267,7 +244,7 @@ public class FragmentCam extends Fragment
                     break;
                 }
                 case STATE_WAITING_NON_PRECAPTURE: {
-                    // CONTROL_AE_STATE can be null on some devices
+
                     Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                     if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
                         mState = STATE_PICTURE_TAKEN;
@@ -297,9 +274,9 @@ public class FragmentCam extends Fragment
     private static Size chooseOptimalSize(Size[] choices, int textureViewWidth,
                                           int textureViewHeight, int maxWidth, int maxHeight, Size aspectRatio) {
 
-        // Collect the supported resolutions that are at least as big as the preview Surface
+
         List<Size> bigEnough = new ArrayList<>();
-        // Collect the supported resolutions that are smaller than the preview Surface
+
         List<Size> notBigEnough = new ArrayList<>();
         int w = aspectRatio.getWidth();
         int h = aspectRatio.getHeight();
@@ -315,20 +292,17 @@ public class FragmentCam extends Fragment
             }
         }
 
-        // Pick the smallest of those big enough. If there is no one big enough, pick the
-        // largest of those not big enough.
         if (bigEnough.size() > 0) {
             return Collections.min(bigEnough, new CompareSizesByArea());
         } else if (notBigEnough.size() > 0) {
             return Collections.max(notBigEnough, new CompareSizesByArea());
         } else {
-            Log.e(TAG, "Couldn't find any suitable preview size");
             return choices[0];
         }
     }
 
-    public static FragmentCam newInstance() {
-        return new FragmentCam();
+    public static CameraFragment newInstance() {
+        return new CameraFragment();
     }
 
     @Override
@@ -364,10 +338,9 @@ public class FragmentCam extends Fragment
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        imageList = new ArrayList<>();
         buffList = new ArrayList<>();
 
-        View view = inflater.inflate(R.layout.fragment_camera2_basic, container, false);
+        View view = inflater.inflate(R.layout.fragment_camera, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
 
         imageButton = (ImageButton)view.findViewById(R.id.imageButton);
@@ -411,16 +384,13 @@ public class FragmentCam extends Fragment
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
-        view.findViewById(R.id.picture).setOnClickListener(this);
         view.findViewById(R.id.picture).setOnTouchListener(this);
-//        view.findViewById(R.id.info).setOnClickListener(this);
         mTextureView = (TextureView) view.findViewById(R.id.texture);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        //mFile = new File(getActivity().getExternalFilesDir(null), "pic.jpg");
     }
 
     @Override
@@ -442,10 +412,6 @@ public class FragmentCam extends Fragment
         super.onPause();
     }
 
-    private void requestCameraPermission() {
-
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -458,12 +424,6 @@ public class FragmentCam extends Fragment
         }
     }
 
-    /**
-     * Sets up member variables related to camera.
-     *
-     * @param width  The width of available size for camera preview
-     * @param height The height of available size for camera preview
-     */
     private void setUpCameraOutputs(int width, int height) {
         Activity activity = getActivity();
         CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
@@ -471,8 +431,6 @@ public class FragmentCam extends Fragment
             for (String cameraId : manager.getCameraIdList()) {
                 CameraCharacteristics characteristics
                         = manager.getCameraCharacteristics(cameraId);
-
-                // We don't use a front facing camera in this sample.
                 Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
                     continue;
@@ -486,20 +444,16 @@ public class FragmentCam extends Fragment
 
                 mVideoSize = chooseVideoSize(map.getOutputSizes(MediaRecorder.class));
 
-                // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),
                         new CompareSizesByArea());
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
-                        ImageFormat.JPEG, /*maxImages*/2);
+                        ImageFormat.JPEG, 2);
                 mImageReader.setOnImageAvailableListener(
                         mOnImageAvailableListener, mBackgroundHandler);
 
 
-                // Find out if we need to swap dimension to get the preview size relative to sensor
-                // coordinate.
                 int displayRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-                //noinspection ConstantConditions
                 mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
                 boolean swappedDimensions = false;
                 switch (displayRotation) {
@@ -515,8 +469,6 @@ public class FragmentCam extends Fragment
                             swappedDimensions = true;
                         }
                         break;
-                    default:
-                        Log.e(TAG, "Display rotation is invalid: " + displayRotation);
                 }
 
                 Point displaySize = new Point();
@@ -541,16 +493,10 @@ public class FragmentCam extends Fragment
                     maxPreviewHeight = MAX_PREVIEW_HEIGHT;
                 }
 
-                // Danger, W.R.! Attempting to use too large a preview size could  exceed the camera
-                // bus' bandwidth limitation, resulting in gorgeous previews but the storage of
-                // garbage capture data.
                 mPreviewSize = chooseOptimalSize(map.getOutputSizes(SurfaceTexture.class),
                         rotatedPreviewWidth, rotatedPreviewHeight, maxPreviewWidth,
                         maxPreviewHeight, largest);
 
-
-
-                // Check if the flash is supported.
                 Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
                 mFlashSupported = available == null ? false : available;
 
@@ -562,9 +508,7 @@ public class FragmentCam extends Fragment
         } catch (CameraAccessException e) {
             e.printStackTrace();
         } catch (NullPointerException e) {
-            // Currently an NPE is thrown when the Camera2API is used but not supported on the
-            // device this code runs.
-
+            e.printStackTrace();
         }
     }
 
@@ -574,20 +518,10 @@ public class FragmentCam extends Fragment
                 return size;
             }
         }
-        Log.e(TAG, "Couldn't find any suitable video size");
         return outputSizes[outputSizes.length - 1];
     }
 
-    /**
-     */
     private void openCamera(int width, int height) {
-        /*
-        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestCameraPermission();
-            return;
-        }
-        */
         setUpCameraOutputs(width, height);
         configureTransform(width, height);
         Activity activity = getActivity();
@@ -609,9 +543,6 @@ public class FragmentCam extends Fragment
         }
     }
 
-    /**
-     * Closes the current {@link CameraDevice}.
-     */
     private void closeCamera() {
         try {
             mCameraOpenCloseLock.acquire();
@@ -638,18 +569,12 @@ public class FragmentCam extends Fragment
         }
     }
 
-    /**
-     * Starts a background thread and its {@link Handler}.
-     */
     private void startBackgroundThread() {
         mBackgroundThread = new HandlerThread("CameraBackground");
         mBackgroundThread.start();
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
     }
 
-    /**
-     * Stops the background thread and its {@link Handler}.
-     */
     private void stopBackgroundThread() {
         mBackgroundThread.quitSafely();
         try {
@@ -661,40 +586,30 @@ public class FragmentCam extends Fragment
         }
     }
 
-    /**
-     * Creates a new {@link CameraCaptureSession} for camera preview.
-     */
     private void createCameraPreviewSession() {
         try {
             SurfaceTexture texture = mTextureView.getSurfaceTexture();
             assert texture != null;
 
-            // We configure the size of default buffer to be the size of camera preview we want.
             texture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
 
-            // This is the output Surface we need to start preview.
             Surface surface = new Surface(texture);
 
-            // We set up a CaptureRequest.Builder with the output Surface.
             mPreviewRequestBuilder
                     = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.addTarget(surface);
 
-            // Here, we create a CameraCaptureSession for camera preview.
             mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
                     new CameraCaptureSession.StateCallback() {
 
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                            // The camera is already closed
                             if (null == mCameraDevice) {
                                 return;
                             }
 
-                            // When the session is ready, we start displaying the preview.
                             mCaptureSession = cameraCaptureSession;
                             try {
-                                // Auto focus should be continuous for camera preview.
                                 if(Build.VERSION.SDK_INT >= 25) {
                                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                                             CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
@@ -702,11 +617,8 @@ public class FragmentCam extends Fragment
                                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                                             CaptureRequest.CONTROL_AF_MODE_OFF);
                                 }
-                                // Flash is automatically enabled when necessary.
-                             //   mPreviewRequestBuilder.set(CaptureRequest.JPEG_QUALITY, (byte) 20);
                                 setAutoFlash(mPreviewRequestBuilder);
 
-                                // Finally, we start displaying the camera preview.
                                 mPreviewRequest = mPreviewRequestBuilder.build();
                                 mCaptureSession.setRepeatingRequest(mPreviewRequest,
                                         mCaptureCallback, mBackgroundHandler);
@@ -726,14 +638,6 @@ public class FragmentCam extends Fragment
         }
     }
 
-    /**
-     * Configures the necessary {@link android.graphics.Matrix} transformation to `mTextureView`.
-     * This method should be called after the camera preview size is determined in
-     * setUpCameraOutputs and also the size of `mTextureView` is fixed.
-     *
-     * @param viewWidth  The width of `mTextureView`
-     * @param viewHeight The height of `mTextureView`
-     */
     private void configureTransform(int viewWidth, int viewHeight) {
         Activity activity = getActivity();
         if (null == mTextureView || null == mPreviewSize || null == activity) {
@@ -759,26 +663,15 @@ public class FragmentCam extends Fragment
         mTextureView.setTransform(matrix);
     }
 
-    /**
-     * Initiate a still image capture.
-     */
     private void takePicture() {
-        Log.d(TAG, "takepicture()");
-
         lockFocus();
     }
 
-    /**
-     * Lock the focus as the first step for a still image capture.
-     */
     private void lockFocus() {
-        Log.d(TAG, "lockfocus()");
         try {
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            // This is how to tell the camera to lock focus.
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_START);
-            // Tell #mCaptureCallback to wait for the lock.
             mState = STATE_WAITING_LOCK;
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
@@ -787,17 +680,10 @@ public class FragmentCam extends Fragment
         }
     }
 
-    /**
-     * Run the precapture sequence for capturing a still image. This method should be called when
-     * we get a response in {@link #mCaptureCallback} from {@link #lockFocus()}.
-     */
     private void runPrecaptureSequence() {
-        Log.d(TAG, "runprecapturesequence()");
         try {
-            // This is how to tell the camera to trigger.
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
                     CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            // Tell #mCaptureCallback to wait for the precapture sequence to be set.
             mState = STATE_WAITING_PRECAPTURE;
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
@@ -806,28 +692,20 @@ public class FragmentCam extends Fragment
         }
     }
 
-    /**
-     * Capture a still picture. This method should be called when we get a response in
-     * {@link #mCaptureCallback} from both {@link #lockFocus()}.
-     */
     private void captureStillPicture() {
-        Log.d(TAG, "capturestillpicture()");
         try {
             final Activity activity = getActivity();
             if (null == activity || null == mCameraDevice) {
                 return;
             }
-            // This is the CaptureRequest.Builder that we use to take a picture.
             final CaptureRequest.Builder captureBuilder =
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureBuilder.addTarget(mImageReader.getSurface());
 
-            // Use the same AE and AF modes as the preview.
             captureBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             setAutoFlash(captureBuilder);
 
-            // Orientation
             int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getOrientation(rotation));
 
@@ -868,34 +746,18 @@ public class FragmentCam extends Fragment
     }
 
     private void unlockFocus() {
-        Log.d(TAG, "unlockfocus()");
         try {
-            // Reset the auto-focus trigger
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
             setAutoFlash(mPreviewRequestBuilder);
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
                     mBackgroundHandler);
-            // After this, the camera will go back to the normal state of preview.
             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF);
             mState = STATE_PREVIEW;
             mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
                     mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.info: {
-                Activity activity = getActivity();
-                if (null != activity) {
-
-                }
-                break;
-            }
         }
     }
 
@@ -908,7 +770,6 @@ public class FragmentCam extends Fragment
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        //down = start, event = now
         if(event.getEventTime() > event.getDownTime() + 1000 && !isHold){
             isHold = true;
             startRecording();
@@ -916,12 +777,10 @@ public class FragmentCam extends Fragment
         switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
                 if(isHold) {
-                    Log.d(TAG, "stop recording ontouch");
                     stopRecording();
                     isHold = false;
                 }
                 else {
-                    Log.d(TAG, "take pic");
                     takePicture();
                 }
                 break;
@@ -934,7 +793,6 @@ public class FragmentCam extends Fragment
         if(mCameraDevice == null || !mTextureView.isAvailable() || mPreviewSize == null){
             return;
         }
-        Log.d(TAG, "startrecordning");
         try {
             closePreview();
             initMediaRecorder();
@@ -966,27 +824,12 @@ public class FragmentCam extends Fragment
                             recordButton.setVisibility(View.VISIBLE);
 
                             mediaRecorder.start();
-                            Log.d(TAG, "After start");
-                            /*
-                            int read;
-                            byte[] data = new byte[16384];
-                            try {
-                                while ((read = inputStream.read(data, 0, data.length)) != -1) {
-                                    outputStream.write(data, 0, read);
-                                }
-                                outputStream.flush();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            */
-
                         }
                     });
                 }
 
                 @Override
                 public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                    Log.d(TAG, "Video recording configuration failed");
                 }
             }, mBackgroundHandler);
         } catch (CameraAccessException e) {
@@ -1017,29 +860,16 @@ public class FragmentCam extends Fragment
             return;
         }
 
-        //Write to bytearray instead of file
-        /*
-        outputStream = new ByteArrayOutputStream();
-
-        descriptors = ParcelFileDescriptor.createPipe();
-        parcelRead = new ParcelFileDescriptor(descriptors[0]);
-        parcelWrite = new ParcelFileDescriptor(descriptors[1]);
-
-        inputStream = new ParcelFileDescriptor.AutoCloseInputStream(parcelRead);
-        */
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        //@TODO filepath
+
         String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
         videoPath = dir + File.separator + "MOV_" + timeStamp + ".mp4";
         mediaRecorder.setOutputFile(videoPath);
-        //mediaRecorder.setOutputFile(parcelWrite.getFileDescriptor());
-        Log.d(TAG, "save in: " + videoPath);
         mediaRecorder.setVideoEncodingBitRate(10000000);
         mediaRecorder.setVideoFrameRate(30);
         mediaRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-        //mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
         switch (mSensorOrientation) {
             case SENSOR_ORIENTATION_DEFAULT_DEGREES:
@@ -1060,8 +890,6 @@ public class FragmentCam extends Fragment
     }
 
     private void stopRecording() {
-        // UI
-        // Stop recording
         animation.end();
         progressBar.clearAnimation();
         progressBar.setProgress(0);
@@ -1077,15 +905,9 @@ public class FragmentCam extends Fragment
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
-        Log.d(TAG, "stop recording method");
 
         mediaRecorder.stop();
         mediaRecorder.reset();
-
-        Activity activity = getActivity();
-        if (null != activity) {
-            Log.d(TAG, "Video saved: ");
-        }
 
         mCallback.onSend(convertTyBytes());
 
@@ -1122,18 +944,9 @@ public class FragmentCam extends Fragment
         return bytes;
     }
 
-    /**
-     * Saves a JPEG {@link Image} into the specified {@link File}.
-     */
     private static class ImageSaver implements Runnable {
 
-        /**
-         * The JPEG image
-         */
         private final Image mImage;
-        /**
-         * The file we save the image into.
-         */
         private final File mFile;
 
         public ImageSaver(Image image, File file) {
@@ -1166,14 +979,10 @@ public class FragmentCam extends Fragment
 
     }
 
-    /**
-     * Compares two {@code Size}s based on their areas.
-     */
     static class CompareSizesByArea implements Comparator<Size> {
 
         @Override
         public int compare(Size lhs, Size rhs) {
-            // We cast here to ensure the multiplications won't overflow
             return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
                     (long) rhs.getWidth() * rhs.getHeight());
         }
