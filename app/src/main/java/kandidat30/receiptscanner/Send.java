@@ -25,7 +25,7 @@ import java.util.List;
 public class Send {
 
     private static final int TIMEOUT = 65000;
-    private static final String SERVER_IP = "http://104.199.77.156:80/";
+    private static final String SERVER_IP = "http://35.187.9.169:80/";
 
     public static MediaPath sendVideo(MediaPath mediaPath){
         try {
