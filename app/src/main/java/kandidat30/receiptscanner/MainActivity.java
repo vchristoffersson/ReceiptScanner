@@ -45,7 +45,9 @@ import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends FragmentActivity implements CameraFragment.OnSendListener,
-        TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener, CameraFragment.OnHDRListener, CameraFragment.FragmentChangeListener{
+        TextFragment.FragmentChangeListener, ImageFragment.OnFragmentInteractionListener,
+        CameraFragment.OnHDRListener, CameraFragment.FragmentChangeListener,
+        CameraFragment.OnImgListener{
 
     private CustomViewPager mPager;
     private PagerAdapter mPagerAdapter;
@@ -214,11 +216,13 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
                 textFragment.notifyAdapter();
                 textFragment.hideEmptyText();
 
-                if(message != "") {
+                if(message != null) {
                     saveLog(image.getName(), message);
                     message = "";
                 }
-
+                else {
+                    saveLog(image.getName(), "");
+                }
                 Toast.makeText(getApplicationContext(), "Video process completed!", Toast.LENGTH_SHORT).show();
             }
 
@@ -261,7 +265,6 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
     @Override
     public void onHDRSend(List<Byte[]> data) {
         loadHDRSettings();
-
         new SendHDRTask().execute(data);
         Toast.makeText(this, "HDR is being processed!", Toast.LENGTH_LONG).show();
     }
@@ -286,8 +289,17 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
         @Override
         protected void onPostExecute(Long result) {
             for(String s : hdrNames) {
-                if(s != "")
+                if(s != "") {
                     textFragment.addImage(s);
+
+                    if(message != null) {
+                        saveLog(s, message);
+                        message = "";
+                    }
+                    else {
+                        saveLog(s, "");
+                    }
+                }
             }
 
             textFragment.notifyAdapter();
@@ -307,8 +319,6 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
             });
         }
     }
-
-
 
     @Override
     public void replaceFragment(Fragment fragment) {
@@ -369,5 +379,11 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
 
     public static void clearLog() {
         log = "";
+    }
+
+    @Override
+    public void onImgSend(String name) {
+        textFragment.addImage(name);
+        db.insertData(name, "");
     }
 }

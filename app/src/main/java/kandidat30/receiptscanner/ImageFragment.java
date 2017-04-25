@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -23,17 +22,6 @@ import android.widget.Toast;
 public class ImageFragment extends Fragment{
 
     private static final String ARG_PARAM1 = "pos";
-
-    private String name;
-    private OnFragmentInteractionListener mListener;
-
-    private TextView ocrText;
-    private TextView swipeText;
-    private TextView logText;
-    private ProgressBar progressBar;
-
-    private Bitmap bitmap;
-    private boolean isOCR = false;
 
     public ImageFragment() {
     }
@@ -53,6 +41,21 @@ public class ImageFragment extends Fragment{
             name = getArguments().getString(ARG_PARAM1);
         }
     }
+
+    private String name;
+    private OnFragmentInteractionListener mListener;
+
+    private TextView ocrText;
+    private TextView swipeText;
+    private TextView logText;
+    private ProgressBar progressBar;
+
+    private Bitmap bitmap;
+    private boolean isOCR = false;
+
+    private final String TAB_IMAGE = "image";
+    private final String TAB_OCR = "ocr";
+    private final String TAB_LOG = "log";
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -76,19 +79,19 @@ public class ImageFragment extends Fragment{
         TabHost tabHost = (TabHost)view.findViewById(R.id.tabHost);
         tabHost.setup();
 
-        TabHost.TabSpec tabSpec = tabHost.newTabSpec("tag1");
+        TabHost.TabSpec tabSpec = tabHost.newTabSpec(TAB_IMAGE);
         tabSpec.setContent(R.id.imageTab);
-        tabSpec.setIndicator("image");
+        tabSpec.setIndicator(TAB_IMAGE);
         tabHost.addTab(tabSpec);
 
-        tabSpec = tabHost.newTabSpec("tag2");
+        tabSpec = tabHost.newTabSpec(TAB_OCR);
         tabSpec.setContent(R.id.textTab);
-        tabSpec.setIndicator("ocr");
+        tabSpec.setIndicator(TAB_OCR);
         tabHost.addTab(tabSpec);
 
-        tabSpec = tabHost.newTabSpec("tag3");
+        tabSpec = tabHost.newTabSpec(TAB_LOG);
         tabSpec.setContent(R.id.logTab);
-        tabSpec.setIndicator("log");
+        tabSpec.setIndicator(TAB_LOG);
         tabHost.addTab(tabSpec);
 
         setTabColor(tabHost);
@@ -96,10 +99,10 @@ public class ImageFragment extends Fragment{
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String tabId) {
-                if(tabId.equals("tag1") || tabId.equals("tag3")) {
+                if(tabId.equals(TAB_IMAGE) || tabId.equals(TAB_LOG)) {
                     isOCR = false;
                 }
-                else if(tabId.equals("tag2")) {
+                else if(tabId.equals(TAB_OCR)) {
                     isOCR = true;
                 }
             }
@@ -126,7 +129,6 @@ public class ImageFragment extends Fragment{
         return view;
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
@@ -154,7 +156,6 @@ public class ImageFragment extends Fragment{
     }
 
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 

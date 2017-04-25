@@ -1,6 +1,5 @@
 package kandidat30.receiptscanner;
 
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -8,7 +7,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +29,6 @@ public class TextFragment extends Fragment{
 
     private List<String> images;
     private String path;
-    private Database db;
 
     public TextFragment() {
 
@@ -70,14 +67,8 @@ public class TextFragment extends Fragment{
 
         final View view = inflater.inflate(R.layout.fragment_text, container, false);
 
-        db = new Database(getContext());
-
         images = getLatestImage();
         emptyView = (TextView)view.findViewById(R.id.empty);
-
-  /*      if(images.isEmpty()) {
-            showEmptyText();
-        }*/
 
         camviewButton = (Button)view.findViewById(R.id.camViewButton);
         camviewButton.setOnClickListener(new View.OnClickListener() {
@@ -88,12 +79,9 @@ public class TextFragment extends Fragment{
             }
         });
 
-        final SwipeDetector swipeDetector = new SwipeDetector();
-
         adapter = new CustomListAdapter(getContext(), images, path);
         listView = (ListView)view.findViewById(R.id.listView);
         listView.setAdapter(adapter);
-        listView.setOnTouchListener(swipeDetector);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -165,7 +153,6 @@ public class TextFragment extends Fragment{
     }
 
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 
@@ -196,14 +183,12 @@ public class TextFragment extends Fragment{
     }
 
     private List<String> getLatestImage() {
-
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
 
         List<String> files = new ArrayList<String>();// list of file paths
 
         File[] listFile;
-
         File file = new File(dir);
 
         path = dir + File.separator;
@@ -215,12 +200,7 @@ public class TextFragment extends Fragment{
             for (int i = 0; i < listFile.length; i++)
             {
                 String name = listFile[i].getName();
-
                 files.add(name);
-
-              //  Bitmap bitmap = BitmapFactory.decodeFile(listFile[i].getAbsolutePath(), options);
-
-              //  MainActivity.imageMap.put(name, bitmap);
             }
         }
 
@@ -233,6 +213,14 @@ public class TextFragment extends Fragment{
 
     public void addImage(String name) {
         images.add(name);
+
+        getActivity().runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     public void hideEmptyText() {

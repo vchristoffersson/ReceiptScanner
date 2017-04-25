@@ -156,11 +156,6 @@ public class Send {
 
                 String message = "start" + path + "," + i;
 
-               /* Bitmap b = data.get(i);
-                ByteArrayOutputStream blob = new ByteArrayOutputStream();
-                b.compress(Bitmap.CompressFormat.JPEG, 30, blob);
-                byte[] bytes = blob.toByteArray();*/
-
                 Byte[] buffer = data.get(i);
 
                 byte[] bytes = toPrimitives(buffer);

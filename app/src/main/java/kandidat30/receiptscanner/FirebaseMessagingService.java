@@ -1,15 +1,9 @@
 package kandidat30.receiptscanner;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Intent;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-
 import com.google.firebase.messaging.RemoteMessage;
-
-import static android.content.Context.NOTIFICATION_SERVICE;
 
 public class FirebaseMessagingService extends com.google.firebase.messaging.FirebaseMessagingService{
 

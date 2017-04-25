@@ -172,7 +172,9 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
         @Override
         public void onImageAvailable(ImageReader reader) {
             String timeStamp = new SimpleDateFormat("yyyyMMdd__HHmmss_SSS").format(new Date());
-            mFile = new File(dir + File.separator + "IMG_" + timeStamp + ".jpg");
+            String fileName = "IMG_" + timeStamp + ".jpg";
+            mFile = new File(dir + File.separator + fileName);
+
             Image img = reader.acquireNextImage();
             if(img != null) {
 
@@ -181,6 +183,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
                     byte[] bytes = new byte[buffer.capacity()];
                     buffer.get(bytes);
                     buffList.add(Send.toObjects(bytes));
+
                     if(buffList.size() == 3) {
                         hdrCallback.onHDRSend(new ArrayList<>(buffList));
                         buffList = new ArrayList<>();
@@ -191,6 +194,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
 
                 else {
                     mBackgroundHandler.post(new ImageSaver(img, mFile));
+                    imgCallback.onImgSend(fileName);
                 }
             }
         }
@@ -331,6 +335,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
     String videoPath;
     private OnSendListener mCallback;
     private OnHDRListener hdrCallback;
+    private OnImgListener imgCallback;
     private ObjectAnimator animation;
     private TextView logText;
     private ScrollView sv;
@@ -1039,12 +1044,16 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
         try {
             mCallback = (OnSendListener) getActivity();
             hdrCallback =(OnHDRListener) getActivity();
+            imgCallback = (OnImgListener) getActivity();
         } catch (ClassCastException e) {
             throw new ClassCastException(getActivity().toString()
                     + " must implement OnFragmentInteractionListener");
         }
     }
 
+    public interface OnImgListener {
+        void onImgSend(String name);
+    }
 
     public interface OnSendListener {
         void onSend(byte[] data);

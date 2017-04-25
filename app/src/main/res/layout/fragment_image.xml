@@ -55,13 +55,22 @@
                     android:layout_height="wrap_content"
                     android:background="@android:color/white">
 
-                    <TextView
-                        android:id="@+id/ocrView"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:contentDescription=""
-                        android:scaleType="fitXY"
-                        android:layout_alignParentTop="true"/>
+                    <ScrollView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="50dp"
+                        android:clipToPadding="false">
+
+                        <TextView
+                            android:id="@+id/ocrView"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:contentDescription=""
+                            android:scaleType="fitXY"
+                            android:textSize="16sp"
+                            android:layout_alignParentTop="true"/>
+
+                    </ScrollView>
 
                     <View
                         android:id="@+id/buttonView"
@@ -104,8 +113,8 @@
 
                     <TextView
                         android:id="@+id/logTextView"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:inputType="text|textMultiLine|textNoSuggestions"
                         android:contentDescription=""
                         android:scaleType="fitXY"
