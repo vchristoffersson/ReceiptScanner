@@ -1055,7 +1055,8 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
     }
 
     public void updateLogText(String text) {
-        logText.setText(text);
+        if(text != null)
+            logText.setText(text);
 
         sv.post(new Runnable() {
             public void run() {
