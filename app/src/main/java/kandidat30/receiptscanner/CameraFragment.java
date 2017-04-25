@@ -102,8 +102,8 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
     private static final int STATE_WAITING_PRECAPTURE = 2;
     private static final int STATE_WAITING_NON_PRECAPTURE = 3;
     private static final int STATE_PICTURE_TAKEN = 4;
-    private static final int MAX_PREVIEW_WIDTH = 1920;
-    private static final int MAX_PREVIEW_HEIGHT = 1080;
+    private static final int MAX_PREVIEW_WIDTH = 2560;
+    private static final int MAX_PREVIEW_HEIGHT = 1440;
 
     private final TextureView.SurfaceTextureListener mSurfaceTextureListener
             = new TextureView.SurfaceTextureListener() {
