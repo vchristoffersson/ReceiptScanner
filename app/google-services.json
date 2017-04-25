@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "902481183149",
+    "firebase_url": "https://receiptbackend.firebaseio.com",
+    "project_id": "receiptbackend",
+    "storage_bucket": "receiptbackend.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:902481183149:android:4778f7ed916d3163",
+        "android_client_info": {
+          "package_name": "kandidat30.receiptscanner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "902481183149-7i44a5uq3hcaj26uc2str8bf6hcqksum.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmwUZ3DTOUAQ3paojuu9_FaEyzFdNF210"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
