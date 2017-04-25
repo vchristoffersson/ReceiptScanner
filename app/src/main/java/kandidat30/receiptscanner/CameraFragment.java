@@ -42,6 +42,9 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -329,6 +332,12 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
     private OnSendListener mCallback;
     private OnHDRListener hdrCallback;
     private ObjectAnimator animation;
+    private TextView logText;
+    private ScrollView sv;
+    private TextView clearText;
+    private TextView hideText;
+    private RelativeLayout rl;
+    private ImageButton consoleButton;
 
     private boolean isHDR = true;
 
@@ -342,6 +351,40 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
 
         View view = inflater.inflate(R.layout.fragment_camera, container, false);
         progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
+
+        sv = (ScrollView)view.findViewById(R.id.logScrollView);
+        logText = (TextView)view.findViewById(R.id.logText);
+
+        rl = (RelativeLayout)view.findViewById(R.id.hideView);
+
+        consoleButton = (ImageButton)view.findViewById(R.id.showConsoleButton);
+        consoleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rl.setVisibility(View.VISIBLE);
+                sv.setVisibility(View.VISIBLE);
+                consoleButton.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        clearText = (TextView)view.findViewById(R.id.clearButton);
+        clearText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                logText.setText("");
+                MainActivity.clearLog();
+            }
+        });
+
+        hideText = (TextView)view.findViewById(R.id.hideButton);
+        hideText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sv.setVisibility(View.INVISIBLE);
+                consoleButton.setVisibility(View.VISIBLE);
+                rl.setVisibility(View.INVISIBLE);
+            }
+        });
 
         imageButton = (ImageButton)view.findViewById(R.id.imageButton);
         imageButton.setOnClickListener(new View.OnClickListener() {
@@ -1009,5 +1052,15 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
 
     public interface OnHDRListener {
         void onHDRSend(List<Byte[]> data);
+    }
+
+    public void updateLogText(String text) {
+        logText.setText(text);
+
+        sv.post(new Runnable() {
+            public void run() {
+                sv.fullScroll(sv.FOCUS_DOWN);
+            }
+        });
     }
 }

@@ -1,5 +1,6 @@
 package kandidat30.receiptscanner;
 
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -7,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +31,7 @@ public class TextFragment extends Fragment{
 
     private List<String> images;
     private String path;
+    private Database db;
 
     public TextFragment() {
 
@@ -66,6 +69,8 @@ public class TextFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         final View view = inflater.inflate(R.layout.fragment_text, container, false);
+
+        db = new Database(getContext());
 
         images = getLatestImage();
         emptyView = (TextView)view.findViewById(R.id.empty);

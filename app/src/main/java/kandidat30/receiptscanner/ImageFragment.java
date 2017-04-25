@@ -1,12 +1,14 @@
 package kandidat30.receiptscanner;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -27,6 +29,7 @@ public class ImageFragment extends Fragment{
 
     private TextView ocrText;
     private TextView swipeText;
+    private TextView logText;
     private ProgressBar progressBar;
 
     private Bitmap bitmap;
@@ -56,8 +59,9 @@ public class ImageFragment extends Fragment{
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_image, container, false);
 
+        Database db = new Database(getContext());
+
         progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
-       // progressBar.getProgressDrawable().setColorFilter(Color.RED, android.graphics.PorterDuff.Mode.SRC_IN);
 
         view.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -82,12 +86,17 @@ public class ImageFragment extends Fragment{
         tabSpec.setIndicator("ocr");
         tabHost.addTab(tabSpec);
 
+        tabSpec = tabHost.newTabSpec("tag3");
+        tabSpec.setContent(R.id.logTab);
+        tabSpec.setIndicator("log");
+        tabHost.addTab(tabSpec);
+
         setTabColor(tabHost);
 
         tabHost.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String tabId) {
-                if(tabId.equals("tag1")) {
+                if(tabId.equals("tag1") || tabId.equals("tag3")) {
                     isOCR = false;
                 }
                 else if(tabId.equals("tag2")) {
@@ -101,6 +110,18 @@ public class ImageFragment extends Fragment{
         ImageView imageView = (ImageView)view.findViewById(R.id.imageView);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
         imageView.setImageBitmap(bitmap);
+
+        logText = (TextView)view.findViewById(R.id.logTextView);
+
+        Cursor result = db.getSaveByName(name);
+        String text;
+
+        if (result != null && result.moveToFirst());
+        do {
+            text = result.getString(1);
+        } while (result.moveToNext());
+
+        logText.setText(text);
 
         return view;
     }

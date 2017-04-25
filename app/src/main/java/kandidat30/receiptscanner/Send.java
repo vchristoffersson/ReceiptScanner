@@ -43,8 +43,16 @@ public class Send {
             conn.setReadTimeout(TIMEOUT);
             conn.setConnectTimeout(TIMEOUT);
 
+            String message = "start" + MainActivity.token;
+
             OutputStream os = conn.getOutputStream();
+            OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+
             os.write(mediaPath.getData());
+            osw.write(message);
+
+            osw.flush();
+            osw.close();
 
             os.flush();
             os.close();

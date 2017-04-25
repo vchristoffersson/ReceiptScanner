@@ -29,4 +29,7 @@ dependencies {
     compile 'com.android.support:design:23.0.1'
     compile 'com.android.support:support-v13:23.0.1'
     compile 'com.android.support:preference-v14:23.0.1'
+    compile 'com.google.firebase:firebase-messaging:9.0.2'
 }
+
+apply plugin: 'com.google.gms.google-services'

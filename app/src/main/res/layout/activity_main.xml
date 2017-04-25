@@ -17,15 +17,17 @@
         android:layout_height="match_parent">
 
         <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="fill_parent"
             android:id="@+id/scanBar"
             android:visibility="invisible"
-            android:progressDrawable="@drawable/progress_bar"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="80dp"
-            android:translationZ="4dp" />
+            android:layout_alignParentBottom="true"
+            android:paddingBottom="19dp"
+            android:indeterminateOnly="true"
+            android:translationZ="4dp"
+            />
     </RelativeLayout>
 
 </FrameLayout>

@@ -1,8 +1,13 @@
 package kandidat30.receiptscanner;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -16,6 +21,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.preference.PreferenceManager;
@@ -27,6 +33,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -61,6 +69,11 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
     private final String MERTENS = "mertens";
     private final String ROBERTSON = "robertson";
 
+    public static String token;
+    public static String message;
+    public static String log;
+    private Database db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -68,13 +81,20 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
 
         setContentView(R.layout.activity_main);
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
+                new IntentFilter("log"));
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Window w = getWindow(); // in Activity's onCreate() for instance
             w.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         }
 
         progressBar = (ProgressBar)findViewById(R.id.scanBar);
+        progressBar.setScaleY(4f);
         progressHandler = new Handler();
+
+        token = FirebaseInstanceId.getInstance().getToken();
+        db = new Database(this);
     }
 
     @Override
@@ -194,6 +214,11 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
                 textFragment.notifyAdapter();
                 textFragment.hideEmptyText();
 
+                if(message != "") {
+                    saveLog(image.getName(), message);
+                    message = "";
+                }
+
                 Toast.makeText(getApplicationContext(), "Video process completed!", Toast.LENGTH_SHORT).show();
             }
 
@@ -214,6 +239,8 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
             });
         }
     }
+
+
 
     private void loadHDRSettings() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -321,5 +348,26 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
             Log.d("PERMISSION", "All permissions was not granted");
             finishAffinity();
         }
+    }
+
+    private void saveLog(String name, String log) {
+        boolean b = db.insertData(name, log);
+        Log.d("booldata", b + " name:" + name);
+        Cursor c = db.getAllData();
+    }
+
+    private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Get extra data included in the Intent
+            String message = intent.getStringExtra("message");
+            log += message;
+            MainActivity.message += message;
+            cameraFragment.updateLogText(log);
+        }
+    };
+
+    public static void clearLog() {
+        log = "";
     }
 }

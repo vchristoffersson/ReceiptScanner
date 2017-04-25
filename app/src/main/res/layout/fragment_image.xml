@@ -69,19 +69,6 @@
                         android:layout_alignParentBottom="true"
                         android:layout_height="60dp"/>
 
-                    <Button
-                        android:id="@+id/ocrButton"
-                        android:text="Scan image"
-                        android:visibility="invisible"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerHorizontal="true"
-                        android:textColor="@color/colorWhite"
-                        android:textSize="20dp"
-                        android:layout_above="@id/buttonView"
-                        android:background="@drawable/buttonshape"
-                        android:textAllCaps="false" />
-
                     <TextView
                         android:id="@+id/slideText"
                         android:text="Swipe down to scan image."
@@ -100,6 +87,32 @@
                         android:layout_centerHorizontal="true"
                         android:layout_centerVertical="true"
                         android:translationZ="4dp" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/logTab"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/white">
+
+                    <ScrollView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="50dp"
+                        android:clipToPadding="false">
+
+                    <TextView
+                        android:id="@+id/logTextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:inputType="text|textMultiLine|textNoSuggestions"
+                        android:contentDescription=""
+                        android:scaleType="fitXY"
+                        android:textSize="16sp"
+                        android:layout_alignParentTop="true"/>
+
+                    </ScrollView>
 
                 </RelativeLayout>
 
