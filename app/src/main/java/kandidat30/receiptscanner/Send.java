@@ -218,7 +218,7 @@ public class Send {
             conn.setReadTimeout(TIMEOUT);
             conn.setConnectTimeout(TIMEOUT);
 
-            String message = path + "," + method;
+            String message = path + "," + method + "," + MainActivity.token;
 
             DataOutputStream ds = new DataOutputStream(conn.getOutputStream());
             ds.writeBytes(message);
