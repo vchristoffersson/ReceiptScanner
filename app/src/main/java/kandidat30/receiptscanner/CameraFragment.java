@@ -22,6 +22,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.MediaRecorder;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +32,7 @@ import android.support.annotation.NonNull;
 import android.support.v13.app.FragmentCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -40,11 +42,13 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -165,6 +169,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
     private ImageReader mImageReader;
     private File mFile;
     private List<Byte[]> buffList;
+    private boolean isDone;
 
     private final ImageReader.OnImageAvailableListener mOnImageAvailableListener
             = new ImageReader.OnImageAvailableListener() {
@@ -193,6 +198,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
                 }
 
                 else {
+                    Toast.makeText(getContext(), "Image saved!", Toast.LENGTH_SHORT);
                     mBackgroundHandler.post(new ImageSaver(img, mFile));
                     imgCallback.onImgSend(fileName);
                 }
@@ -345,6 +351,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
     private ImageButton consoleButton;
 
     private boolean isHDR = true;
+    private boolean isTimePassed;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -430,10 +437,13 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
         void replaceFragment(Fragment fragment);
     }
 
+    private Button cameraButton;
+
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         view.findViewById(R.id.picture).setOnTouchListener(this);
         mTextureView = (TextureView) view.findViewById(R.id.texture);
+        cameraButton = (Button)view.findViewById(R.id.picture);
     }
 
     @Override
@@ -816,19 +826,27 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
         }
     }
 
+    private CustomViewPager mPager;
+
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        if(event.getEventTime() > event.getDownTime() + 1000 && !isHold){
+        if(event.getEventTime() > event.getDownTime() + 1000 && !isHold && !isTimePassed){
             isHold = true;
+            mPager = (CustomViewPager) getActivity().findViewById(R.id.pager);
+            mPager.setPagingEnabled(false);
+
             startRecording();
+           // new StopRecordTask().execute("");
         }
         switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
-                if(isHold) {
+                if(isHold && !isTimePassed) {
+                    stopTask.cancel(true);
                     stopRecording();
                     isHold = false;
                 }
-                else {
+                else if(!isTimePassed){
+                    Log.d("picture", "here nowffs");
                     takePicture();
                 }
                 break;
@@ -842,6 +860,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
             return;
         }
         try {
+
             closePreview();
             initMediaRecorder();
             SurfaceTexture texture = mTextureView.getSurfaceTexture();
@@ -863,12 +882,15 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-
+                            stopTask = new StopRecordTask();
+                            stopTask.execute();
                             animation = ObjectAnimator.ofInt (progressBar, "progress", 0, 700); // see this max value coming back here, we animale towards that value
-                            animation.setDuration (7000); //in milliseconds
+                            animation.setDuration (14000); //in milliseconds
                             animation.setInterpolator (new DecelerateInterpolator());
                             animation.start ();
 
+                          //  TimeThread t = new TimeThread();
+                            //t.start();
                             recordButton.setVisibility(View.VISIBLE);
 
                             mediaRecorder.start();
@@ -938,15 +960,22 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
     }
 
     private void stopRecording() {
-        animation.end();
-        progressBar.clearAnimation();
-        progressBar.setProgress(0);
-        recordButton.setVisibility(View.INVISIBLE);
+        Log.d("records", "made it");
 
         if(!isHold) {
             return;
         }
         isHold = false;
+        Log.d("records", "made it2");
+
+        mPager = (CustomViewPager) getActivity().findViewById(R.id.pager);
+        mPager.setPagingEnabled(true);
+
+        animation.end();
+        progressBar.clearAnimation();
+        progressBar.setProgress(0);
+        recordButton.setVisibility(View.INVISIBLE);
+
         try {
             mCaptureSession.stopRepeating();
             mCaptureSession.abortCaptures();
@@ -957,6 +986,7 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
         mediaRecorder.stop();
         mediaRecorder.reset();
 
+        setCameraButtonSate(View.INVISIBLE);
         mCallback.onSend(convertTyBytes());
 
         createCameraPreviewSession();
@@ -1037,7 +1067,6 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
 
     }
 
-
     @Override
     public void onStart() {
         super.onStart();
@@ -1073,4 +1102,49 @@ public class CameraFragment extends Fragment implements View.OnTouchListener,
             }
         });
     }
+
+    private StopRecordTask stopTask;
+
+    private class StopRecordTask extends AsyncTask<String,Integer, Long> {
+
+        protected void onProgressUpdate(Integer... progress) {
+
+        }
+
+        @Override
+        protected Long doInBackground(String... params) {
+            long totalSize = 0;
+
+            try {
+                Thread.sleep(6900);
+                isTimePassed = true;
+                isHold = true;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+
+            return totalSize;
+        }
+
+        @Override
+        protected void onPostExecute(Long result) {
+            cameraButton.setVisibility(View.INVISIBLE);
+            stopRecording();
+        }
+
+        @Override
+        protected void onPreExecute() {
+
+        }
+    }
+
+    public void setCameraButtonSate(int state) {
+        cameraButton.setVisibility(state);
+
+        if(state == View.VISIBLE) {
+            isTimePassed = false;
+        }
+    }
+
 }

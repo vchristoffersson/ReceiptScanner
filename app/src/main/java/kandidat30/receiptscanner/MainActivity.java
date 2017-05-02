@@ -211,6 +211,8 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
         @Override
         protected void onPostExecute(Long result) {
 
+            cameraFragment.setCameraButtonSate(View.VISIBLE);
+
             if(image != null) {
                 textFragment.addImage(image.getPath());
                 textFragment.notifyAdapter();
@@ -231,6 +233,7 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
             }
 
             progressBar.setVisibility(View.INVISIBLE);
+            textFragment.enableListView();
         }
 
         @Override
@@ -239,12 +242,11 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
                 @Override
                 public void run() {
                     progressBar.setVisibility(View.VISIBLE);
+                    textFragment.disableListView();
                 }
             });
         }
     }
-
-
 
     private void loadHDRSettings() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -307,6 +309,8 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
 
             progressBar.setVisibility(View.INVISIBLE);
             Toast.makeText(getApplicationContext(), "HDR process completed!", Toast.LENGTH_SHORT).show();
+            cameraFragment.setCameraButtonSate(View.VISIBLE);
+            textFragment.enableListView();
         }
 
         @Override
@@ -315,6 +319,8 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
                 @Override
                 public void run() {
                     progressBar.setVisibility(View.VISIBLE);
+                    textFragment.disableListView();
+                    cameraFragment.setCameraButtonSate(View.INVISIBLE);
                 }
             });
         }

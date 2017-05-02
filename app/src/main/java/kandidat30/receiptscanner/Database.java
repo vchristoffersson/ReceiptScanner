@@ -53,7 +53,7 @@ public class Database extends SQLiteOpenHelper {
 
     public void deleteSave(String name) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM " + TABLE_NAME + " WHERE ID =" + name);
+        db.execSQL("DELETE FROM " + TABLE_NAME + " WHERE NAME ='" + name + "'");
     }
 
     public void dropTable(SQLiteDatabase db) {

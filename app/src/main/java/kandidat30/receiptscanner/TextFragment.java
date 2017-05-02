@@ -200,7 +200,13 @@ public class TextFragment extends Fragment{
             for (int i = 0; i < listFile.length; i++)
             {
                 String name = listFile[i].getName();
-                files.add(name);
+
+                if(name.endsWith("4")) {
+                    listFile[i].delete();
+                }
+                else {
+                    files.add(name);
+                }
             }
         }
 
@@ -229,6 +235,14 @@ public class TextFragment extends Fragment{
 
     public void showEmptyText() {
         emptyView.setVisibility(View.VISIBLE);
+    }
+
+    public void disableListView() {
+        listView.setEnabled(false);
+    }
+
+    public void enableListView() {
+        listView.setEnabled(true);
     }
 
 }

@@ -89,6 +89,8 @@ public class CustomListAdapter extends BaseAdapter {
                 images.remove(position);
                 MainActivity.image = null;
                 removeFile(name);
+                Database db = new Database(context);
+                db.deleteSave(name);
                 notifyDataSetChanged();
 
                 Toast.makeText(context, "Deleted", Toast.LENGTH_SHORT).show();

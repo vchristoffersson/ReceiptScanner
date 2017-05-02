@@ -121,7 +121,13 @@ public class ImageFragment extends Fragment{
 
         if (result != null && result.moveToFirst());
         do {
-            text = result.getString(1);
+            if(result.getColumnCount() > 0)
+                text = result.getString(1);
+
+            else {
+                text = "";
+            }
+
         } while (result.moveToNext());
 
         logText.setText(text);
