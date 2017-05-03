@@ -25,6 +25,7 @@ import java.util.List;
 public class Send {
 
     private static final int TIMEOUT = 65000;
+    private static final int HDR_TIMEOUT = 650000;
     private static final String SERVER_IP = "http://35.187.9.169:80/";
 
     public static MediaPath sendVideo(MediaPath mediaPath){
@@ -151,8 +152,8 @@ public class Send {
                 conn.setRequestProperty("Cache-Control", "no-cache");
                 conn.setRequestProperty("Content-Type", "multipart/form-data");
 
-                conn.setReadTimeout(TIMEOUT);
-                conn.setConnectTimeout(TIMEOUT);
+                conn.setReadTimeout(HDR_TIMEOUT);
+                conn.setConnectTimeout(HDR_TIMEOUT);
 
                 String message = "start" + path + "," + i;
 
@@ -215,8 +216,8 @@ public class Send {
             conn.setRequestProperty("Cache-Control", "no-cache");
             conn.setRequestProperty("Content-Type", "multipart/form-data");
 
-            conn.setReadTimeout(TIMEOUT);
-            conn.setConnectTimeout(TIMEOUT);
+            conn.setReadTimeout(HDR_TIMEOUT);
+            conn.setConnectTimeout(HDR_TIMEOUT);
 
             String message = path + "," + method + "," + MainActivity.token;
 
