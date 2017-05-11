@@ -66,7 +66,10 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * Fragment for holding all camera settings and views belonging to the camera
+ * Uses Androids camera2 API
+ */
 public class CameraFragment extends Fragment implements View.OnTouchListener,
         FragmentCompat.OnRequestPermissionsResultCallback {
 

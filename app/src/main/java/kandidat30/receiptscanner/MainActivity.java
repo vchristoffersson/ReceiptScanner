@@ -345,8 +345,6 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
-        Log.d("PERMISSION", "checkin if permission was granted");
-
         Map<String, Integer> permissionsMap = new HashMap<>();
         permissionsMap.put(Manifest.permission.CAMERA, PackageManager.PERMISSION_GRANTED);
         permissionsMap.put(Manifest.permission.WRITE_EXTERNAL_STORAGE, PackageManager.PERMISSION_GRANTED);
@@ -357,11 +355,9 @@ public class MainActivity extends FragmentActivity implements CameraFragment.OnS
         if (permissionsMap.get(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
                 && permissionsMap.get(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
 
-            Log.d("PERMISSION", "All permissions was granted");
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
             initiateApp();
         } else {
-            Log.d("PERMISSION", "All permissions was not granted");
             finishAffinity();
         }
     }
