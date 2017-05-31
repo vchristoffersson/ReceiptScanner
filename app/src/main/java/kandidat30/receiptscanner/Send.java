@@ -25,8 +25,15 @@ import java.util.List;
 public class Send {
 
     private static final int TIMEOUT = 65000;
+    private static final int HDR_TIMEOUT = 650000;
     private static final String SERVER_IP = "http://35.187.9.169:80/";
 
+    /**
+     * Sends captured video data to the server.
+     *
+     * @param mediaPath contains video data to send
+     * @return Return a media path that contains image and a path.
+     */
     public static MediaPath sendVideo(MediaPath mediaPath){
         try {
             URL url = new URL(SERVER_IP + "upload-video");
@@ -83,6 +90,12 @@ public class Send {
         return null;
     }
 
+    /**
+     * Sends the image to the server to OCR-scan it with Google Cloud Vision.
+     *
+     * @param image image to OCR scan
+     * @return The text that the OCR scan read.
+     */
     public static String getReceiptData(Bitmap image) {
         try
         {
@@ -135,6 +148,15 @@ public class Send {
         return "";
     }
 
+    /**
+     * Sends three images with different exposure time to be processed by HDR algorithms on the server.
+     *
+     * @param dir The path where the images will be written
+     * @param path Image name
+     * @param data The images in raw format
+     * @param algorithms the name of the algorithms we want the server to process
+     * @return A list containing the names of all the files.
+     */
     public static List<String> sendImage(File dir, String path, List<Byte[]> data, List<String> algorithms) {
 
         for(int i = 0; i < data.size(); i++) {
@@ -151,8 +173,8 @@ public class Send {
                 conn.setRequestProperty("Cache-Control", "no-cache");
                 conn.setRequestProperty("Content-Type", "multipart/form-data");
 
-                conn.setReadTimeout(TIMEOUT);
-                conn.setConnectTimeout(TIMEOUT);
+                conn.setReadTimeout(HDR_TIMEOUT);
+                conn.setConnectTimeout(HDR_TIMEOUT);
 
                 String message = "start" + path + "," + i;
 
@@ -215,8 +237,8 @@ public class Send {
             conn.setRequestProperty("Cache-Control", "no-cache");
             conn.setRequestProperty("Content-Type", "multipart/form-data");
 
-            conn.setReadTimeout(TIMEOUT);
-            conn.setConnectTimeout(TIMEOUT);
+            conn.setReadTimeout(HDR_TIMEOUT);
+            conn.setConnectTimeout(HDR_TIMEOUT);
 
             String message = path + "," + method + "," + MainActivity.token;
 
@@ -251,6 +273,12 @@ public class Send {
         return "";
     }
 
+    /**
+     * Writes the file the internal storage on the device
+     *
+     * @param file the file containing the internal path.
+     * @param data The image in raw format
+     */
     private static void writeFile(File file, byte[] data) {
 
         OutputStream outputStream = null;
@@ -274,6 +302,12 @@ public class Send {
         }
     }
 
+    /**
+     * Converts object bytes to primitive Bytes
+     *
+     * @param oBytes The data source in object form
+     * @return The byte array in primitive form
+     */
     public static byte[] toPrimitives(Byte[] oBytes) {
         byte[] bytes = new byte[oBytes.length];
 
@@ -284,6 +318,12 @@ public class Send {
         return bytes;
     }
 
+    /**
+     * Converts primitive Bytes to object bytes
+     *
+     * @param bytesPrim the bytes in object form
+     * @return The byte array in primitive form
+     */
     public static Byte[] toObjects(byte[] bytesPrim) {
         Byte[] bytes = new Byte[bytesPrim.length];
 
